@@ -5,6 +5,7 @@ import numpy as np
 import json
 import time
 from modules.SupportAll.DebugHandler import DebugHandler
+import argparse
 
 class Sonar:
     def __init__(self, ip: str = "localhost", port: int = 5000):
@@ -104,5 +105,10 @@ class Sonar:
             self.debug_handler.set_data("INFO", "Sonar scan interrupted by user.")
 
 if __name__ == "__main__":
-    SonarSensor = Sonar()
+    parser = argparse.ArgumentParser(description="Sonar System")
+    parser.add_argument("--ip", type=str, default="localhost", help="Server IP address")
+    parser.add_argument("--port", type=int, default=5000, help="Server port number")
+    args = parser.parse_args()
+
+    SonarSensor = Sonar(args.ip, args.port)
     SonarSensor.run()
