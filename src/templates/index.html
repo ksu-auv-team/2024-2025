@@ -1,18 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>KSU AUV Viewer</title>
-        <link rel="stylesheet" href="../static/style.css">
+        <link rel="stylesheet" href="../static/style.css" />
     </head>
     <body>
         <div class="header">
             <h1>KSU AUV Viewer</h1>
+            <button class="start-button"><img src="../icon.png" /></button>
         </div>
+        <div class="camera-viewer">
+            <img src="http://localhost:5001/video_0"/>
+            <img src="http://localhost:5001/video_1"/>
+        </div>
+        <div class="data-viewer">
+            <div class="header">
+                
+            </div>
+            <div class="data-cat">
 
-        
+            </div>
+        </div>
+        <div class="debug-viewer">
 
+        </div>
         <script src="../static/script.js"></script>
     </body>
 </html>
