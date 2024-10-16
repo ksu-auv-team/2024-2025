@@ -9,7 +9,6 @@ import argparse
 import time
 
 class HardwareInterface:
-    @staticmethod
     def read_i2c_word(self, register):
         """Read two i2c registers and combine them.
 
@@ -26,8 +25,7 @@ class HardwareInterface:
             return -((65535 - value) + 1)
         else:
             return value
-        
-    @staticmethod
+
     def convert_temp(self, data):
         """
         Converts raw temperature data to degrees Celsius.
@@ -44,8 +42,7 @@ class HardwareInterface:
         temp = ((value * 165.0) / 16383.0) - 40.0 + self.TEMP_CALIBRATION_OFFSET
         # print(f"Raw Temp Value: {value}, Converted Temp: {temp}")  # Debugging statement
         return temp
-    
-    @staticmethod
+
     def convert_humi(self, data):
         """
         Converts raw humidity data to percentage.
@@ -62,8 +59,7 @@ class HardwareInterface:
         humi = (value / 16383.0) * 100
         # print(f"Raw Humi Value: {value}, Converted Humi: {humi}")  # Debugging statement
         return humi
-    
-    @staticmethod
+
     def log_data(self, type_of_data, data):
         """
         Logs data to the specified log file.
@@ -93,7 +89,7 @@ class HardwareInterface:
         )
 
         self.bus = smbus2.SMBus(1)
-        
+
         self.addresses = {
             'MPU6050': 0x68,
             'ESCs': 6,
@@ -103,21 +99,21 @@ class HardwareInterface:
             'Hydrophones': None,
             'Depth': None
         }
-        
+
         self.url = f"http://{ip}:{port}"
         self.debug = debug
-        
+
         self.mpu = MPU6050(self.bus, self.addresses['MPU6050'])
-        
+
         self.debugger = DebugHandler('HardwareInterface', ip, port)
-    
+
     def print_data(self, data, data_type):
         message = f'{data_type}: {data}'
         self.debugger.set_data(MessageType="LOG", Message=message)
-    
+
     def handle_error(self, error):
         self.debugger.set_data(MessageType="ERROR", Message=error)
-    
+
     def get_data(self):
         """Retrieves data from the specified data type endpoint.
 
@@ -138,7 +134,7 @@ class HardwareInterface:
         except requests.exceptions.RequestException as e:
             self.debugger.set_data(MessageType="ERROR", Message=str(e))
             return {}
-    
+
     def send_data(self, data):
         """Posts data to the specified data type endpoint.
 
@@ -154,7 +150,7 @@ class HardwareInterface:
             return "Data added successfully"
         else:
             return f"Failed to add data, status code: {response.status_code}"
-    
+
     def write_ESCs(self, data):
         """Writes data to the ESCs.
 
@@ -183,7 +179,7 @@ class HardwareInterface:
                 self.log_data('Error', {'Error': str(e), 'Data': data})
             else:
                 pass
-    
+
     def read_Temp(self):
         """Reads data from the temperature sensor.
 
@@ -199,7 +195,7 @@ class HardwareInterface:
                 self.log_data('Error', {'Error': str(e)})
             else:
                 pass
-    
+
     def read_BatteryMonitor(self):
         """Reads data from the battery monitor.
 
@@ -215,7 +211,7 @@ class HardwareInterface:
                 self.log_data('Error', {'Error': str(e)})
             else:
                 pass
-    
+
     def read_Depth(self):
         """Reads data from the depth sensor.
 
@@ -223,7 +219,7 @@ class HardwareInterface:
             float: The depth in meters.
         """
         pass
-    
+
     def read_Hydrophones(self):
         """Reads data from the hydrophones.
 
@@ -231,7 +227,7 @@ class HardwareInterface:
             dict: The hydrophone data.
         """
         pass
-    
+
     def read_MPU6050(self):
         """Reads data from the MPU6050.
 
@@ -246,7 +242,7 @@ class HardwareInterface:
                 self.log_data('Error', {'Error': str(e)})
             else:
                 pass
-    
+
     def test_ESCs(self):
         """Tests the ESCs.
 
@@ -269,7 +265,7 @@ class HardwareInterface:
         self.write_ESCs([150, 150, 150, 150, 150, 150, 150, 150])
         time.sleep(4)
         self.write_ESCs([127, 127, 127, 127, 127, 127, 127, 127])
-    
+
     def test_BatteryMonitor(self):
         """Tests the Battery Monitor.
 
@@ -277,7 +273,7 @@ class HardwareInterface:
         Logged Output
         """
         pass
-    
+
     def test_Arm(self):
         """Tests the Arm.
 
@@ -285,7 +281,7 @@ class HardwareInterface:
         Logged Output
         """
         pass
-    
+
     def test_Temp(self):
         """Tests the Temperature Sensor.
 
@@ -293,7 +289,7 @@ class HardwareInterface:
         Logged Output
         """
         pass
-    
+
     def test_Depth(self):
         """Tests the Depth Sensor.
 
@@ -301,7 +297,7 @@ class HardwareInterface:
         Logged Output
         """
         pass
-    
+
     def test_Hydrophones(self):
         """Tests the Hydrophones.
 
@@ -309,7 +305,7 @@ class HardwareInterface:
         Logged Output
         """
         pass
-    
+
     def test_MPU6050(self):
         """Tests the MPU6050.
 
@@ -317,15 +313,15 @@ class HardwareInterface:
         Logged Output
         """
         pass
-       
+
     def test_suite(self):
         """Runs a suite of tests on the Hardware Interface.
 
         No Return Value
         Logged Output
-        
+
         User can select the test to run by adding the test number to the test_suite method call.
-        
+
         Tests:
             - Test 1: Test the ESCs
             - Test 2: Test the Battery Monitor
@@ -365,4 +361,3 @@ class HardwareInterface:
                 break
             else:
                 print("Invalid test number")
-        
