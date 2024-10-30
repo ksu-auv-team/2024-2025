@@ -15,7 +15,7 @@ parser.add_argument('--all', action='store_true', help='Run the application with
 args = parser.parse_args()
 
 commands = [
-    ['python3', 'src/FlaskServer.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python3', 'src/FlaskHandler.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python3', 'src/HardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python3', 'src/MovementPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python3', 'src/CameraPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
