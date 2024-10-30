@@ -9,6 +9,34 @@ import argparse
 import time
 
 class HardwareInterface:
+    def __init__(self, ip='localhost', port=5000, debug=False):
+        logging.basicConfig(
+            filename='logs/main.log',      # Name of the log file
+            filemode='a',            # Append mode (use 'w' for overwrite each time)
+            format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
+            datefmt='%Y-%m-%d %H:%M:%S',  # Timestamp format
+            level=logging.INFO       # Minimum log level to record
+        )
+
+        self.bus = smbus2.SMBus(1)
+
+        self.addresses = {
+            'MPU6050': 0x68,
+            'ESCs': 6,
+            'Battery_Monitor': 7,
+            'Arm': 9,
+            'Temp': 0x27,
+            'Hydrophones': None,
+            'Depth': None
+        }
+
+        self.url = f"http://{ip}:{port}"
+        self.debug = debug
+
+        self.mpu = MPU6050(self.bus, self.addresses['MPU6050'])
+
+        self.debugger = DebugHandler('HardwareInterface', ip, port)
+
     def read_i2c_word(self, register):
         """Read two i2c registers and combine them.
 
@@ -78,34 +106,6 @@ class HardwareInterface:
             logging.error(f"{type_of_data}: {json.dumps(data)}")
         elif type == 'Critical':
             logging.critical(f"{type_of_data}: {json.dumps(data)}")
-
-    def __init__(self, ip='localhost', port=5000, debug=False):
-        logging.basicConfig(
-            filename='logs/main.log',      # Name of the log file
-            filemode='a',            # Append mode (use 'w' for overwrite each time)
-            format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
-            datefmt='%Y-%m-%d %H:%M:%S',  # Timestamp format
-            level=logging.INFO       # Minimum log level to record
-        )
-
-        self.bus = smbus2.SMBus(1)
-
-        self.addresses = {
-            'MPU6050': 0x68,
-            'ESCs': 6,
-            'Battery_Monitor': 7,
-            'Arm': 9,
-            'Temp': 0x27,
-            'Hydrophones': None,
-            'Depth': None
-        }
-
-        self.url = f"http://{ip}:{port}"
-        self.debug = debug
-
-        self.mpu = MPU6050(self.bus, self.addresses['MPU6050'])
-
-        self.debugger = DebugHandler('HardwareInterface', ip, port)
 
     def print_data(self, data, data_type):
         message = f'{data_type}: {data}'

@@ -3,7 +3,7 @@ import requests
 import argparse
 import time
 import pyautogui
-from modules.SupportAll.DebugHandler import DebugHandler
+from src.modules.SupportAll.DebugHandler import DebugHandler
 
 class VirtualHardwareInterface:
     def __init__(self, ip, port):

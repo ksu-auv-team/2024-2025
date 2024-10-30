@@ -6,6 +6,7 @@ parser.add_argument('--ip', type=str, default='localhost', help='IP to run the a
 parser.add_argument('--port', type=int, default=5000, help='Port to run the application on')
 parser.add_argument('--debug', action='store_true', help='Run the application in debug mode')
 parser.add_argument('--HI', action='store_true', help='Run the application with the Hardware Interface')
+parser.add_argument('--VHI', action='store_true', help='Run the application with the Virtual Hardware Interface')
 parser.add_argument('--MP', action='store_true', help='Run the application with the Movement Package')
 parser.add_argument('--CP', action='store_true', help='Run the application with the Camera Package')
 parser.add_argument('--AI', action='store_true', help='Run the application with the AI Package')
@@ -19,7 +20,8 @@ commands = [
     ['python3', 'src/MovementPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python3', 'src/CameraPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python3', 'src/AIPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/SonarPackage.py', '--ip', str(args.ip), '--port', str(args.port)]
+    ['python3', 'src/SonarPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python3', 'tests/VirtualHardwareInterface/VirtualHardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)]
 ]
 
 processes = []
@@ -38,6 +40,12 @@ elif args.HI:
         processes.append(subprocess.Popen(commands[1] + ['--debug']))
     else:
         processes.append(subprocess.Popen(commands[1]))
+elif args.VHI:
+    print('Running Virtual Hardware Interface')
+    if args.debug:
+        processes.append(subprocess.Popen(commands[6] + ['--debug']))
+    else:
+        processes.append(subprocess.Popen(commands[6]))
 elif args.MP:
     print('Running Movement Package')
     if args.debug:
