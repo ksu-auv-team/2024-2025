@@ -3,7 +3,7 @@ import requests
 import argparse
 import time
 import pyautogui
-from src.modules.SupportAll.DebugHandler import DebugHandler
+#from src.modules.SupportAll.DebugHandler import DebugHandler
 
 class VirtualHardwareInterface:
     def __init__(self, ip, port):
@@ -24,7 +24,7 @@ class VirtualHardwareInterface:
             'ClawOpen': 't', 'ClawClose': 'space'
         }
         self.paused = False
-        self.debug.set_data("ControlKeys", "Control keys mapped to DOF actions")
+        #self.debug.set_data("ControlKeys", "Control keys mapped to DOF actions")
 
     def get_data(self):
         """Retrieve the current control values from the server."""
@@ -45,7 +45,7 @@ class VirtualHardwareInterface:
 
         # Check if control is paused
         if self.paused:
-            self.debug.set_data("Actuation", "Control is paused")
+            #self.debug.set_data("Actuation", "Control is paused")
             return
 
         # First four thrusters control X, Z, and Yaw DOFs
@@ -54,58 +54,58 @@ class VirtualHardwareInterface:
         # Forward and backward movement
         if all(t > 127 for t in [t1, t2, t3, t4]):
             pyautogui.press(self.control_keys['X+'])
-            self.debug.set_data("Actuation", "Sub moving forward")
+            #self.debug.set_data("Actuation", "Sub moving forward")
         elif all(t <= 127 for t in [t1, t2, t3, t4]):
             pyautogui.press(self.control_keys['X-'])
-            self.debug.set_data("Actuation", "Sub moving backward")
+            #self.debug.set_data("Actuation", "Sub moving backward")
 
         # Right and left movement
         elif t1 > 127 and t3 > 127 and t2 <= 127 and t4 <= 127:
             pyautogui.press(self.control_keys['Z+'])
-            self.debug.set_data("Actuation", "Sub moving right")
+            #self.debug.set_data("Actuation", "Sub moving right")
         elif t2 > 127 and t4 > 127 and t1 <= 127 and t3 <= 127:
             pyautogui.press(self.control_keys['Z-'])
-            self.debug.set_data("Actuation", "Sub moving left")
+            #self.debug.set_data("Actuation", "Sub moving left")
 
         # Rotation (Yaw) right and left
         elif t1 > 127 and t4 > 127 and t2 <= 127 and t3 <= 127:
             pyautogui.press(self.control_keys['Yaw+'])
-            self.debug.set_data("Actuation", "Sub rotating right")
+            #self.debug.set_data("Actuation", "Sub rotating right")
         elif t2 > 127 and t3 > 127 and t1 <= 127 and t4 <= 127:
             pyautogui.press(self.control_keys['Yaw-'])
-            self.debug.set_data("Actuation", "Sub rotating left")
+            #self.debug.set_data("Actuation", "Sub rotating left")
 
         # Second four thrusters control Z (vertical) DOF
         t5, t6, t7, t8 = thrusters[4:]
 
         if all(t > 127 for t in [t5, t6, t7, t8]):
             pyautogui.press(self.control_keys['Vertical+'])
-            self.debug.set_data("Actuation", "Sub moving down")
+            #self.debug.set_data("Actuation", "Sub moving down")
         elif all(t <= 127 for t in [t5, t6, t7, t8]):
             pyautogui.press(self.control_keys['Vertical-'])
-            self.debug.set_data("Actuation", "Sub moving up")
+            #self.debug.set_data("Actuation", "Sub moving up")
 
         # Torpedo control
         if torpedoes[0]:
             pyautogui.press(self.control_keys['Torpedo1'])
-            self.debug.set_data("Actuation", "Torpedo 1 launched")
+            #self.debug.set_data("Actuation", "Torpedo 1 launched")
         if torpedoes[1]:
             pyautogui.press(self.control_keys['Torpedo2'])
-            self.debug.set_data("Actuation", "Torpedo 2 launched")
+            #self.debug.set_data("Actuation", "Torpedo 2 launched")
 
         # Claw control
         if claw > 127:
             pyautogui.press(self.control_keys['ClawOpen'])
-            self.debug.set_data("Actuation", "Claw opening")
+            #self.debug.set_data("Actuation", "Claw opening")
         else:
             pyautogui.press(self.control_keys['ClawClose'])
-            self.debug.set_data("Actuation", "Claw closing")
+            #self.debug.set_data("Actuation", "Claw closing")
 
     def toggle_pause(self):
         """Toggle pause state when Escape key is pressed."""
         self.paused = not self.paused
         state = "paused" if self.paused else "resumed"
-        self.debug.set_data("ControlState", f"Control {state}")
+        #self.debug.set_data("ControlState", f"Control {state}")
 
     def run(self):
         """Main loop for continuously checking data and actuating controls."""

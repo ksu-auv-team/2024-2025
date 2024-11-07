@@ -21,7 +21,7 @@ commands = [
     ['python', 'src/CameraPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python', 'src/AIPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
     ['python', 'src/SonarPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python', 'tests/VirtualHardwareInterface/VirtualHardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)]
+    ['python', 'testing/VirtualHardwareInterface/VirtualHardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)]
 ]
 
 processes = []
