@@ -15,13 +15,13 @@ parser.add_argument('--all', action='store_true', help='Run the application with
 args = parser.parse_args()
 
 commands = [
-    ['python3', 'src/FlaskHandler.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/HardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/MovementPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/CameraPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/AIPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'src/SonarPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
-    ['python3', 'tests/VirtualHardwareInterface/VirtualHardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)]
+    ['python', 'src/FlaskHandler.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'src/HardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'src/MovementPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'src/CameraPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'src/AIPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'src/SonarPackage.py', '--ip', str(args.ip), '--port', str(args.port)],
+    ['python', 'tests/VirtualHardwareInterface/VirtualHardwareInterface.py', '--ip', str(args.ip), '--port', str(args.port)]
 ]
 
 processes = []
