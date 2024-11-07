@@ -1,5 +1,6 @@
 import subprocess
 import argparse
+import time
 
 parser = argparse.ArgumentParser(description='Start the application')
 parser.add_argument('--ip', type=str, default='localhost', help='IP to run the application on')
