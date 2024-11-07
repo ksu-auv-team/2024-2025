@@ -61,7 +61,7 @@ class CM:
                 print(f"{joystick_count} joystick(s) found. Using the first one.")
                 break
             else:
-                print("No joystick found. Retrying in 3 seconds.")
+                print("No joystick found. Connect the controller you bot!")
                 pygame.time.wait(3000)
         
         self.joystick = pygame.joystick.Joystick(0)
