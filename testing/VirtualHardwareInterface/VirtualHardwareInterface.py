@@ -10,8 +10,8 @@ class VirtualHardwareInterface:
         self.ip = ip
         self.port = port
         self.url = f"http://{self.ip}:{self.port}"
-        self.debug = DebugHandler("VirtualHardwareInterface", ip, port)
-        self.debug.set_data("Initialization", "VirtualHardwareInterface initialized")
+        #self.debug = DebugHandler("VirtualHardwareInterface", ip, port)
+        #self.debug.set_data("Initialization", "VirtualHardwareInterface initialized")
 
         # Define initial outputs for thrusters, torpedoes, and claw
         self.outputs = [127, 127, 127, 127, 127, 127, 127, 127, False, False, 127]
@@ -31,10 +31,10 @@ class VirtualHardwareInterface:
         try:
             response = requests.get(self.url + "/outputs")
             data = response.json()
-            self.debug.set_data("DataRetrieval", "Data retrieved from server")
+            #self.debug.set_data("DataRetrieval", "Data retrieved from server")
             return data
         except requests.RequestException as e:
-            self.debug.set_data("Error", f"Failed to retrieve data: {e}")
+            #self.debug.set_data("Error", f"Failed to retrieve data: {e}")
             return self.outputs  # return last known values if request fails
 
     def actuate(self, data):
