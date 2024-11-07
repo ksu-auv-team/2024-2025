@@ -78,6 +78,7 @@ if not args.all:
         processes.append(subprocess.Popen(commands[0]))
 
 while True:
+    time.sleep(10)
     try:
         for process in processes:
             process.wait()
