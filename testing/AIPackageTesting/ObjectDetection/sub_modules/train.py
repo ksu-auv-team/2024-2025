@@ -12,7 +12,6 @@ def train_model(model):
         epochs=EPOCHS,
         imgsz=IMG_SIZE,
         batch=BATCH_SIZE,
-        project=OUTPUT_PATH,  # Custom outputs folder
         name=MODEL_NAME, 
         task="detect",  # Explicitly set the task
     )
