@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 4
+names: ['Bin', 'Buoy', 'Gate', 'Path']
+
+roboflow:
+  workspace: competition-wisfv
+  project: robosub2024-2deem
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/competition-wisfv/robosub2024-2deem/dataset/1

@@ -33,7 +33,7 @@ class CM:
             #     self.baseurl = self.config['poolUrl']
             # else:
             #     self.baseurl = self.config['labUrl']
-            self.config = self.config['FlightController']
+            self.config = self.config['Controller']
 
         self.joy_data = []
         
