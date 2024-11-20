@@ -12,11 +12,10 @@ IMG_SIZE = 640
 BATCH_SIZE = 16
 
 print("Configuration loaded!")
-print("Dataset Path:", DATASET_PATH)
-print("Model Save Path:", MODEL_SAVE_PATH)
-print("Output Path:", OUTPUT_PATH)
-print("Model Name:", MODEL_NAME)
-print("Device:", DEVICE)
-print("Epochs:", EPOCHS)
-print("Image Size:", IMG_SIZE)
-print("Batch Size:", BATCH_SIZE)
+# print("Dataset Path:", DATASET_PATH)
+# print("Model Save Path:", MODEL_SAVE_PATH)
+# print("Model Name:", MODEL_NAME)
+# print("Device:", DEVICE)
+# print("Epochs:", EPOCHS)
+# print("Image Size:", IMG_SIZE)
+# print("Batch Size:", BATCH_SIZE)
