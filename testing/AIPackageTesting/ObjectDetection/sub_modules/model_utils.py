@@ -1,6 +1,8 @@
 # model_utils.py
 from ultralytics import YOLO
-from sub_modules.config import MODEL_SAVE_PATH
+from sub_modules.config import MODEL_SAVE_PATH, MODEL_NAME
+
+import os
 
 def load_model():
     """
@@ -8,7 +10,7 @@ def load_model():
     """
     try:
         # Check if the model file exists
-        model = YOLO(MODEL_SAVE_PATH)  # Load from disk
+        model = YOLO(os.path.join(MODEL_SAVE_PATH, MODEL_NAME))  # Load from disk
         print("Loaded existing YOLO model.")
     except FileNotFoundError:
         print("No existing model found. Creating a new one...")
