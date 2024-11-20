@@ -1,6 +1,6 @@
 # train.py
 from ultralytics import YOLO
-from sub_modules.config import DATASET_PATH, EPOCHS, IMG_SIZE, BATCH_SIZE, OUTPUT_PATH, MODEL_NAME
+from sub_modules.config import DATASET_PATH, EPOCHS, IMG_SIZE, BATCH_SIZE, MODEL_NAME
 
 def train_model(model):
     """
@@ -13,7 +13,6 @@ def train_model(model):
         epochs=EPOCHS,
         imgsz=IMG_SIZE,
         batch=BATCH_SIZE,
-        project=OUTPUT_PATH,  # Custom outputs folder
         name=MODEL_NAME, 
     )
     print("Training completed!")
