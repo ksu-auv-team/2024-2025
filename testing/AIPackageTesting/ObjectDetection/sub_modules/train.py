@@ -1,6 +1,6 @@
 # train.py
 from ultralytics import YOLO
-from config import DATASET_PATH, EPOCHS, IMG_SIZE, BATCH_SIZE, OUTPUT_PATH, MODEL_NAME
+from sub_modules.config import DATASET_PATH, EPOCHS, IMG_SIZE, BATCH_SIZE, OUTPUT_PATH, MODEL_NAME
 
 def train_model(model):
     """
