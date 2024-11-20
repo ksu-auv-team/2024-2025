@@ -3,7 +3,7 @@ import os
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 
-from config import DATASET_PATH, IMAGE_SIZE, BATCH_SIZE
+from sub_modules.config import DATASET_PATH, IMAGE_SIZE, BATCH_SIZE
 
 def get_data_loaders():
     # Data augmentation and normalization

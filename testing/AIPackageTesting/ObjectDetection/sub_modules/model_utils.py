@@ -3,7 +3,7 @@ import torch
 import os
 from torchvision.models.detection import fasterrcnn_resnet50_fpn  # Replace with YOLOv11 if available
 
-from config import MODEL_SAVE_PATH, DEVICE, CLASS_NAMES
+from sub_modules.config import MODEL_SAVE_PATH, DEVICE, CLASS_NAMES
 
 def create_model():
     # Replace with YOLOv11-specific model if you have it
