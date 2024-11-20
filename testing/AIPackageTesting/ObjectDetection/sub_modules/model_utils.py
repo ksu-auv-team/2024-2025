@@ -12,7 +12,7 @@ def load_model():
         print("Loaded existing YOLO model.")
     except FileNotFoundError:
         print("No existing model found. Creating a new one...")
-        model = YOLO("yolov8n.pt")  # Start with a pre-trained YOLO model (nano version)
+        model = YOLO("yolov11l.pt")  # Start with a pre-trained YOLO model (nano version)
     
     return model
 
