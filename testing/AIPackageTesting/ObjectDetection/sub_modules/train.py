@@ -13,6 +13,7 @@ def train_model(model):
         imgsz=IMG_SIZE,
         batch=BATCH_SIZE,
         name=MODEL_NAME, 
+        project=OUTPUT_PATH,  # Save to project/name
         task="detect",  # Explicitly set the task
     )
     print("Training completed!")
