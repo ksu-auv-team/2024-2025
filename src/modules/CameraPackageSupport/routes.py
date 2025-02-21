@@ -1,5 +1,5 @@
 from flask import Blueprint, Response, request
-from CameraPackageSupport.WebCamService import WebCam
+from modules.CameraPackageSupport.WebCamService import WebCam
 import cv2
 
 REQUEST_API = Blueprint('request_api', __name__)
@@ -27,6 +27,6 @@ def gen(webcam):
 def monitoring():
     try:
         webcam = WebCam()
-        return Response(gen(webcam), mimetype='multipart/x-mixed-replace; boundary=frame')
+        return Response(gen(webcam), mimetype='multipart/x-mixed-replace; boundary=frame') ##Returns a picture essentially
     except Exception as err:
         return Response(f'Error {err}')

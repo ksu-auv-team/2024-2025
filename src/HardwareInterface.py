@@ -1,4 +1,4 @@
-from modules.HardwareInterfaceSupport.MPU6050 import MPU6050
+from modules.HardwareInterfaceSupport import MPU6050
 from modules.SupportAll.DebugHandler import DebugHandler
 
 import smbus2
@@ -33,7 +33,7 @@ class HardwareInterface:
         self.url = f"http://{ip}:{port}"
         self.debug = debug
 
-        self.mpu = MPU6050(self.bus, self.addresses['MPU6050'])
+        self.mpu = MPU6050_file(self.bus, self.addresses['MPU6050'])
 
         self.debugger = DebugHandler('HardwareInterface', ip, port)
 

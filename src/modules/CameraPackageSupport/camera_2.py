@@ -1,13 +1,13 @@
 
 #commented out as this camera is currently inactive and leaving as is causes errors
 from flask import Flask, render_template, Response, Blueprint
-from CameraPackageSupport import routes
-from CameraPackageSupport.WebCamService import WebCam
+from modules.CameraPackageSupport import routes
+from modules.CameraPackageSupport.WebCamService import WebCam
 
 anchor_blueprint = Blueprint('camera_2', __name__)
 
 
-@anchor_blueprint.route('/video_1')
+@anchor_blueprint.route('/video_1')##Blueprint code allows for easily placing camera data where needed.
 def video_1():
     try:
         anchor_camera = WebCam(camera_number=2)

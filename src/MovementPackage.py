@@ -1,5 +1,5 @@
 from modules.MovementPackageSupport.PID import PID
-#from modules.SupportAll.DebugHandler import DebugHandler
+from modules.SupportAll.DebugHandler import DebugHandler
 
 import requests
 import numpy as np
