@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template 
 from flask_sqlalchemy import SQLAlchemy
 import argparse
 import logging
 import os
+
 
 # Create the logs directory if it doesn't exist
 log_folder = 'logs'
@@ -112,9 +113,9 @@ class Debug(db.Model):
         return f"Debug('{self.Package}', '{self.ErrorType}', '{self.Message}')"
 
 # API Endpoints for Inputs
-@app.route('/inputs', methods=['GET', 'POST'])
-def handle_inputs():
-    if request.method == 'POST':
+@app.route('/inputs', methods=['POST'])
+def handle_inputs_post():
+    if request.method == 'POST':    
         data = request.get_json()
         new_input = Inputs(X=data['X'], Y=data['Y'], Z=data['Z'], Roll=data['Roll'], 
                            Pitch=data['Pitch'], Yaw=data['Yaw'], Torp1=data['Torp1'], 
@@ -123,124 +124,125 @@ def handle_inputs():
         db.session.commit()
         return jsonify({'message': 'New input added'}), 201
     
-    if request.method == 'GET':
-        latest_input = Inputs.query.order_by(Inputs.id.desc()).first()
-        return jsonify({
-            'X': latest_input.X,
-            'Y': latest_input.Y,
-            'Z': latest_input.Z,
-            'Roll': latest_input.Roll,
-            'Pitch': latest_input.Pitch,
-            'Yaw': latest_input.Yaw,
-            'Torp1': latest_input.Torp1,
-            'Torp2': latest_input.Torp2,
-            'Claw': latest_input.Claw
-        }), 200
+@app.route('/inputs', methods=['GET'])
+def handle_inputs_get():
+    latest_input = Inputs.query.order_by(Inputs.id.desc()).first()
+    return jsonify({
+        'X': latest_input.X,
+        'Y': latest_input.Y,
+        'Z': latest_input.Z,
+        'Roll': latest_input.Roll,
+        'Pitch': latest_input.Pitch,
+        'Yaw': latest_input.Yaw,
+        'Torp1': latest_input.Torp1,
+        'Torp2': latest_input.Torp2,
+        'Claw': latest_input.Claw
+    }), 200
 
 # API Endpoints for Outputs
-@app.route('/outputs', methods=['GET', 'POST'])
-def handle_outputs():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_output = Outputs(M1=data['M1'], M2=data['M2'], M3=data['M3'], M4=data['M4'], 
-                             M5=data['M5'], M6=data['M6'], M7=data['M7'], M8=data['M8'], 
-                             Torp1=data['Torp1'], Torp2=data['Torp2'], Claw=data['Claw'])
-        db.session.add(new_output)
-        db.session.commit()
-        return jsonify({'message': 'New output added'}), 201
+@app.route('/outputs', methods=['POST'])
+def handle_outputs_post():
+    data = request.get_json()
+    new_output = Outputs(M1=data['M1'], M2=data['M2'], M3=data['M3'], M4=data['M4'], 
+                         M5=data['M5'], M6=data['M6'], M7=data['M7'], M8=data['M8'], 
+                         Torp1=data['Torp1'], Torp2=data['Torp2'], Claw=data['Claw'])
+    db.session.add(new_output)
+    db.session.commit()
+    return jsonify({'message': 'New output added'}), 201
     
-    if request.method == 'GET':
-        latest_output = Outputs.query.order_by(Outputs.id.desc()).first()
-        return jsonify({
-            'M1': latest_output.M1,
-            'M2': latest_output.M2,
-            'M3': latest_output.M3,
-            'M4': latest_output.M4,
-            'M5': latest_output.M5,
-            'M6': latest_output.M6,
-            'M7': latest_output.M7,
-            'M8': latest_output.M8,
-            'Torp1': latest_output.Torp1,
-            'Torp2': latest_output.Torp2,
-            'Claw': latest_output.Claw
-        }), 200
+@app.route('/outputs', methods=['GET'])
+def handle_outputs_get():
+    latest_output = Outputs.query.order_by(Outputs.id.desc()).first()
+    return jsonify({
+        'M1': latest_output.M1,
+        'M2': latest_output.M2,
+        'M3': latest_output.M3,
+        'M4': latest_output.M4,
+        'M5': latest_output.M5,
+        'M6': latest_output.M6,
+        'M7': latest_output.M7,
+        'M8': latest_output.M8,
+        'Torp1': latest_output.Torp1,
+        'Torp2': latest_output.Torp2,
+        'Claw': latest_output.Claw
+    }), 200
 
 # API Endpoints for Sonar
-@app.route('/sonar', methods=['GET', 'POST'])
-def handle_sonar():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_sonar = Sonar(Distance=data['Distance'], Angle=data['Angle'])
-        db.session.add(new_sonar)
-        db.session.commit()
-        return jsonify({'message': 'New sonar reading added'}), 201
-    
-    if request.method == 'GET':
-        latest_sonar = Sonar.query.order_by(Sonar.id.desc()).first()
-        return jsonify({
-            'Distance': latest_sonar.Distance,
-            'Angle': latest_sonar.Angle
-        }), 200
+@app.route('/sonar', methods=['POST'])
+def handle_sonar_post():
+    data = request.get_json()
+    new_sonar = Sonar(Distance=data['Distance'], Angle=data['Angle'])
+    db.session.add(new_sonar)
+    db.session.commit()
+    return jsonify({'message': 'New sonar reading added'}), 201
+
+@app.route('/sonar', methods=['GET'])
+def handle_sonar_get():
+    latest_sonar = Sonar.query.order_by(Sonar.id.desc()).first()
+    return jsonify({
+        'Distance': latest_sonar.Distance,
+        'Angle': latest_sonar.Angle
+    }), 200
         
 # API Endpoints for Batteries
-@app.route('/batteries', methods=['GET', 'POST'])
-def handle_batteries():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_battery = Batteries(Voltage1=data['Voltage1'], Voltage2=data['Voltage2'], 
-                                Voltage3=data['Voltage3'], Current1=data['Current1'], 
-                                Current2=data['Current2'], Current3=data['Current3'], 
-                                Error=data['Error'])
-        db.session.add(new_battery)
-        db.session.commit()
-        return jsonify({'message': 'New battery reading added'}), 201
-    
-    if request.method == 'GET':
-        latest_battery = Batteries.query.order_by(Batteries.id.desc()).first()
-        return jsonify({
-            'Voltage1': latest_battery.Voltage1,
-            'Voltage2': latest_battery.Voltage2,
-            'Voltage3': latest_battery.Voltage3,
-            'Current1': latest_battery.Current1,
-            'Current2': latest_battery.Current2,
-            'Current3': latest_battery.Current3,
-            'Error': latest_battery.Error
-        }), 200
+@app.route('/batteries', methods=['POST'])
+def handle_batteries_post():
+    data = request.get_json()
+    new_battery = Batteries(Voltage1=data['Voltage1'], Voltage2=data['Voltage2'], 
+                            Voltage3=data['Voltage3'], Current1=data['Current1'], 
+                            Current2=data['Current2'], Current3=data['Current3'], 
+                            Error=data['Error'])
+    db.session.add(new_battery)
+    db.session.commit()
+    return jsonify({'message': 'New battery reading added'}), 201
+
+@app.route('/batteries', methods=['GET'])
+def handle_batteries_get():
+    latest_battery = Batteries.query.order_by(Batteries.id.desc()).first()
+    return jsonify({
+        'Voltage1': latest_battery.Voltage1,
+        'Voltage2': latest_battery.Voltage2,
+        'Voltage3': latest_battery.Voltage3,
+        'Current1': latest_battery.Current1,
+        'Current2': latest_battery.Current2,
+        'Current3': latest_battery.Current3,
+        'Error': latest_battery.Error
+    }), 200
         
 # API Endpoints for IMU
-@app.route('/imu', methods=['GET', 'POST'])
-def handle_imu():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_imu = IMU(AccelX=data['AccelX'], AccelY=data['AccelY'], AccelZ=data['AccelZ'], 
-                      GyroX=data['GyroX'], GyroY=data['GyroY'], GyroZ=data['GyroZ'])
-        db.session.add(new_imu)
-        db.session.commit()
-        return jsonify({'message': 'New IMU reading added'}), 201
-    
-    if request.method == 'GET':
-        latest_imu = IMU.query.order_by(IMU.id.desc()).first()
-        return jsonify({
-            'AccelX': latest_imu.AccelX,
-            'AccelY': latest_imu.AccelY,
-            'AccelZ': latest_imu.AccelZ,
-            'GyroX': latest_imu.GyroX,
-            'GyroY': latest_imu.GyroY,
-            'GyroZ': latest_imu.GyroZ
-        }), 200
+@app.route('/imu', methods=['POST'])
+def handle_imu_post():
+    data = request.get_json()
+    new_imu = IMU(AccelX=data['AccelX'], AccelY=data['AccelY'], AccelZ=data['AccelZ'], 
+                  GyroX=data['GyroX'], GyroY=data['GyroY'], GyroZ=data['GyroZ'])
+    db.session.add(new_imu)
+    db.session.commit()
+    return jsonify({'message': 'New IMU reading added'}), 201
+
+@app.route('/imu', methods=['GET'])
+def handle_imu_get():
+    latest_imu = IMU.query.order_by(IMU.id.desc()).first()
+    return jsonify({
+        'AccelX': latest_imu.AccelX,
+        'AccelY': latest_imu.AccelY,
+        'AccelZ': latest_imu.AccelZ,
+        'GyroX': latest_imu.GyroX,
+        'GyroY': latest_imu.GyroY,
+        'GyroZ': latest_imu.GyroZ
+    }), 200
 
 # API Endpoints for Sensors
-@app.route('/sensors', methods=['GET', 'POST'])
-def handle_sensors():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_sensor = Sensors(Temp=data['Temp'], Humidity=data['Humidity'], 
-                             Pressure=data['Pressure'], Depth=data['Depth'])
-        db.session.add(new_sensor)
-        db.session.commit()
-        return jsonify({'message': 'New sensor reading added'}), 201
-    
-    if request.method == 'GET':
+@app.route('/sensors', methods=['POST'])
+def handle_sensors_post():
+    data = request.get_json()
+    new_sensor = Sensors(Temp=data['Temp'], Humidity=data['Humidity'], 
+                         Pressure=data['Pressure'], Depth=data['Depth'])
+    db.session.add(new_sensor)
+    db.session.commit()
+    return jsonify({'message': 'New sensor reading added'}), 201
+
+@app.route('/sensors', methods=['GET'])
+def handle_sensors_get():
         latest_sensor = Sensors.query.order_by(Sensors.id.desc()).first()
         return jsonify({
             'Temp': latest_sensor.Temp,
@@ -250,22 +252,22 @@ def handle_sensors():
         }), 200
         
 # API Endpoints for Debug
-@app.route('/debug', methods=['GET', 'POST'])
-def handle_debug():
-    if request.method == 'POST':
-        data = request.get_json()
-        new_debug = Debug(Package=data['Package'], ErrorType=data['ErrorType'], Message=data['Message'])
-        db.session.add(new_debug)
-        db.session.commit()
-        return jsonify({'message': 'New debug message added'}), 201
-    
-    if request.method == 'GET':
-        latest_debug = Debug.query.order_by(Debug.id.desc()).first()
-        return jsonify({
-            'Package': latest_debug.Package,
-            'ErrorType': latest_debug.ErrorType,
-            'Message': latest_debug.Message
-        }), 200
+@app.route('/debug', methods=['GET'])
+def handle_debug_get():
+    latest_debug = Debug.query.order_by(Debug.id.desc()).first()
+    return jsonify({
+        'Package': latest_debug.Package,
+        'ErrorType': latest_debug.ErrorType,
+        'Message': latest_debug.Message
+    }), 200
+
+@app.route('/debug', methods=['POST'])
+def handle_debug_post():
+    data = request.get_json()
+    new_debug = Debug(Package=data['Package'], ErrorType=data['ErrorType'], Message=data['Message'])
+    db.session.add(new_debug)
+    db.session.commit()
+    return jsonify({'message': 'New debug message added'}), 201
 
 @app.route('/')
 def home():
