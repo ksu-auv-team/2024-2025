@@ -1,5 +1,5 @@
 import cv2
-
+import pyzed.sl as sl
 
 class WebCam:
     '''webcam class has ip and camera number attributes so the cameras can exist
@@ -8,10 +8,13 @@ class WebCam:
         self.ip = ip
         self.camera_number = camera_number
         self.capture = None
-
     def get_frame(self, capture):
         while True:
-            hasFrame, frame = capture.read()
+            if self.camera_number == 0:
+                frame = capture
+                hasFrame = True
+            else:
+                hasFrame, frame = capture.read()
             if (self.camera_number == 0):
                 frame = self.crop_frame(frame)
             if not hasFrame:
