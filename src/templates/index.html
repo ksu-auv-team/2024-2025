@@ -14,23 +14,24 @@
             <h1>KSU AUV Viewer</h1>
             <nav>
                 <ul>
-                    <li><a href="#" class="nav-link" data-target="video-container">Cameras</a></li>
-                    <li><a href="#" class="nav-link" data-target="inputs-container">Inputs</a></li>
-                    <li><a href="#" class="nav-link" data-target="outputs-container">Outputs</a></li>
-                    <li><a href="#" class="nav-link" data-target="sonar-container">Sonar</a></li>
-                    <li><a href="#" class="nav-link" data-target="batteries-container">Batteries</a></li>
-                    <li><a href="#" class="nav-link" data-target="imu-container">IMU</a></li>
-                    <li><a href="#" class="nav-link" data-target="sensors-container">Sensors</a></li>
+                    <li><a href="#" class="nav-link" data-target="cameras">Cameras</a></li>
+                    <li><a href="#" class="nav-link" data-target="inputs">Inputs</a></li>
+                    <li><a href="#" class="nav-link" data-target="outputs">Outputs</a></li>
+                    <li><a href="#" class="nav-link" data-target="sonar">Sonar</a></li>
+                    <li><a href="#" class="nav-link" data-target="batteries">Batteries</a></li>
+                    <li><a href="#" class="nav-link" data-target="imu">IMU</a></li>
+                    <li><a href="#" class="nav-link" data-target="sensors">Sensors</a></li>
+                    <li><a href="#" class="nav-link" data-target="data-logs">Data Logs</a></li>
                 </ul>
             </nav>
         </div>
         <div class="content">
-            <div class="video-container">
+            <div class="container" id="cameras">
                 <h2>Cameras</h2>
                 <div class="cameras">
                     <div class="camera" id="zedcam">
                         <h3>ZED Camera</h3>
-                        <img src="/static/imgs/placeholder.svg" alt="ZED Camera" />
+                        <img src="static/imgs/placeholder.svg" alt="ZED Camera" />
                     </div>
                     <div class="camera" id="anchorcam">
                         <h3>Anchor Camera</h3>
@@ -38,7 +39,7 @@
                     </div>
                 </div>
             </div>
-            <div class="inputs-container">
+            <div class="container" id="inputs">
                 <h2>Inputs</h2>
                 <div class="input-form">
                     <form id="input-form">
@@ -82,6 +83,24 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="container" id="outputs">
+                <h2>Outputs</h2>
+            </div>
+            <div class="container" id="sonar">
+                <h2>Sonar</h2>
+            </div>
+            <div class="container" id="batteries">
+                <h2>Batteries</h2>
+            </div>
+            <div class="container" id="imu">
+                <h2>IMU</h2>
+            </div>
+            <div class="container" id="sensors">
+                <h2>Sensors</h2>
+            </div>
+            <div class="container" id="data-logs">
+                <h2>Data Logs</h2>
             </div>
         </div>
         <script src="../static/script.js"></script>

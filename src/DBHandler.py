@@ -14,7 +14,7 @@ app = Flask(__name__)
 # This must run AFTER all models are imported
 async def init_models():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 # Call it before Flask starts
@@ -28,6 +28,19 @@ asyncio.run(init_models())
 @app.route('/inputs', methods=['POST'])
 async def create_input():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'x': 0.0,
+            'y': 0.0,
+            'z': 0.0,
+            'roll': 0.0,
+            'pitch': 0.0,
+            'yaw': 0.0,
+            's1': 0.0,
+            's2': 0.0,
+            's3': 0.0,
+            'arm': 0,
+        }
     async with async_session() as session:
         new_input = Inputs(**data)
         session.add(new_input)
@@ -47,6 +60,20 @@ async def get_inputs():
 @app.route('/outputs', methods=['POST'])
 async def create_output():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'm1': 0.0,
+            'm2': 0.0,
+            'm3': 0.0,
+            'm4': 0.0,
+            'm5': 0.0,
+            'm6': 0.0,
+            'm7': 0.0,
+            'm8': 0.0,
+            's1': 0.0,
+            's2': 0.0,
+            's3': 0.0,
+        }
     async with async_session() as session:
         new_output = Outputs(**data)
         session.add(new_output)
@@ -66,6 +93,11 @@ async def get_outputs():
 @app.route('/sonar', methods=['POST'])
 async def create_sonar():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'distance': 0.0,
+            'angle': 0.0,
+        }
     async with async_session() as session:
         new_sonar = Sonar(**data)
         session.add(new_sonar)
@@ -85,6 +117,15 @@ async def get_sonar():
 @app.route('/batteries', methods=['POST'])
 async def create_battery():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'voltage1': 0.0,
+            'current1': 0.0,
+            'voltage2': 0.0,
+            'current2': 0.0,
+            'voltage3': 0.0,
+            'current3': 0.0,
+        }
     async with async_session() as session:
         new_battery = Batteries(**data)
         session.add(new_battery)
@@ -104,6 +145,18 @@ async def get_batteries():
 @app.route('/imu', methods=['POST'])
 async def create_imu():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'acceleration_x': 0.0,
+            'acceleration_y': 0.0,
+            'acceleration_z': 0.0,
+            'gyro_x': 0.0,
+            'gyro_y': 0.0,
+            'gyro_z': 0.0,
+            'magnetometer_x': 0.0,
+            'magnetometer_y': 0.0,
+            'magnetometer_z': 0.0,
+        }
     async with async_session() as session:
         new_imu = IMU(**data)
         session.add(new_imu)
@@ -123,6 +176,13 @@ async def get_imu():
 @app.route('/sensors', methods=['POST'])
 async def create_sensor():
     data = request.json
+    if data is None or not isinstance(data, dict):
+        data = {
+            'temperature': 0.0,
+            'humidity': 0.0,
+            'pressure': 0.0,
+            'depth': 0.0,
+        }
     async with async_session() as session:
         new_sensor = Sensors(**data)
         session.add(new_sensor)
