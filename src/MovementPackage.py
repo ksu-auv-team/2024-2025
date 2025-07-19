@@ -13,6 +13,11 @@ class MovementPackage:
 
     @note Still need to implement the PID controller.
     """
+
+    @staticmethod
+    def mapping(x, in_min, in_max, out_min, out_max):
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    
     def __init__(self, ip='localhost', port=5000, debug=False):
         self.ip = ip
         self.port = port
@@ -128,8 +133,11 @@ class MovementPackage:
         horizontal_speeds = np.dot(self.horizontalMapping, self.horizontalInputs)
         vertical_speeds = np.dot(self.verticalMapping, self.verticalInputs)
 
-        self.horizontalMotors = np.clip(horizontal_speeds, -127, 127)
-        self.verticalMotors = np.clip(vertical_speeds, -127, 127)
+        self.horizontalMotors = np.clip(horizontal_speeds, -1, 1)
+        self.verticalMotors = np.clip(vertical_speeds, -1, 1)
+
+        self.horizontalMotors = self.mapping(self.horizontalMotors, -1, 1, 0, 256)
+        self.verticalMotors = self.mapping(self.verticalMotors, -1, 1, 0, 256)
 
     def _join_data(self):
         """
@@ -144,9 +152,9 @@ class MovementPackage:
             "M6": self.verticalMotors[1],
             "M7": self.verticalMotors[2],
             "M8": self.verticalMotors[3],
-            "S1": self.input_data["S1"],    
-            "S2": self.input_data["S2"],
-            "S3": self.input_data["S3"]
+            "S1": self.mapping(self.input_data["S1"], -1, 1, 0, 256),    
+            "S2": self.mapping(self.input_data["S2"], -1, 1, 0, 256),
+            "S3": self.mapping(self.input_data["S3"], -1, 1, 0, 256)
         }
         
     def _send_data(self):
