@@ -1,23 +1,12 @@
-import smbus2
+import board
+import busio
+from adafruit_bno08x.i2c import BNO08X_I2C
+from adafruit_bno08x import BNO_REPORT_ACCELEROMETER
 
-class IMU:
-    def __init__(self, bus_number=1, address=0x68):
-        self.bus = smbus2.SMBus(bus_number)
-        self.address = address
+i2c = busio.I2C(board.SCL, board.SDA)
+bno = BNO08X_I2C(i2c)
+bno.enable_feature(BNO_REPORT_ACCELEROMETER)
 
-    def read_bus(self, register):
-        try:
-            data = self.bus.read_i2c_block_data(self.address, register, 6)
-            return data
-        except Exception as e:
-            print(f"Error reading from bus: {e}")
-            return None
-
-if __name__ == "__main__":
-    imu = IMU(0x4B)
-    register = 0x4B  # Example register address for gyroscope data
-    data = imu.read_bus(register)
-    if data:
-        print("Data read from IMU:", data)
-    else:
-        print("Failed to read data from IMU.")
+while True:
+    accel_x, accel_y, accel_z = bno.acceleration
+    print("X: %0.6f  Y: %0.6f Z: %0.6f  m/s^2" % (accel_x, accel_y, accel_z))
