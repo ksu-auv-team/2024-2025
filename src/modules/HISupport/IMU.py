@@ -16,7 +16,7 @@ class IMU:
         return accel_data
     
 if __name__ == "__main__":
-    imu = IMU()
+    imu = IMU(0x4b)
     gyro = imu.read_gyro()
     accel = imu.read_accel()
     print("Gyroscope Data:", gyro)
