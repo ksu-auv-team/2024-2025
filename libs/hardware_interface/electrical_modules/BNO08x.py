@@ -6,15 +6,15 @@ import Jetson.GPIO as GPIO  # Jetson-compatible GPIO library
 
 # === CONFIGURATION ===
 I2C_BUS = 1
-BNO085_ADDR = 0x4B  # Verified with i2cdetect
-INTERRUPT_GPIO = 17  # GPIO17 on Jetson (BCM pin numbering)
+BNO085_ADDR = 0x4B
+WAKE_GPIO = 17  # GPIO17 -> BNO08x PS0/WAKE
 
 # === I2C SETUP ===
 bus = smbus2.SMBus(I2C_BUS)
 
 # === GPIO SETUP ===
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(INTERRUPT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(WAKE_GPIO, GPIO.OUT, initial=GPIO.HIGH)  # Start HIGH (idle)
 
 # === MATH UTIL ===
 def quaternion_to_euler(w, x, y, z):
@@ -35,6 +35,14 @@ def quaternion_to_euler(w, x, y, z):
         math.degrees(pitch),
         math.degrees(yaw)
     )
+
+# === WAKE-UP PULSE ===
+def wake_bno08x():
+    print("Sending WAKE pulse to BNO08x...")
+    GPIO.output(WAKE_GPIO, GPIO.LOW)
+    time.sleep(0.01)  # At least 5–10 ms LOW
+    GPIO.output(WAKE_GPIO, GPIO.HIGH)
+    print("WAKE complete.")
 
 # === ENABLE FEATURES ===
 def enable_features():
@@ -89,16 +97,17 @@ def read_sensor_data():
 
 # === MAIN LOOP ===
 if __name__ == "__main__":
-    enable_features()
-    print("Waiting for sensor interrupt (GPIO17)...")
-
     try:
+        wake_bno08x()
+        enable_features()
+
+        print("Polling sensor data...")
         while True:
-            GPIO.wait_for_edge(INTERRUPT_GPIO, GPIO.FALLING)
+            wake_bno08x()            # Optional: wake before each poll
             read_sensor_data()
+            time.sleep(0.05)
 
     except KeyboardInterrupt:
         print("Interrupted by user.")
-
     finally:
         GPIO.cleanup()
