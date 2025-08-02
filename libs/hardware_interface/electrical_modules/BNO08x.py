@@ -33,29 +33,39 @@ def quaternion_to_euler(w, x, y, z):
 
 def read_sensor_data():
     try:
-        # Read the header (4 bytes)
-        data = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
-        packet_length = data[0] | (data[1] << 8)
+        # Attempt to read the 4-byte SHTP header
+        header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
+
+        packet_length = header[0] | (header[1] << 8)
+
+        # If no data, skip
+        if packet_length == 0 or packet_length > 128:
+            return
 
         # Read the full packet
-        if packet_length > 0:
-            packet = bus.read_i2c_block_data(BNO085_ADDR, 0, packet_length)
+        packet = bus.read_i2c_block_data(BNO085_ADDR, 0, packet_length)
 
-            report_id = packet[4]
-            if report_id == 0x05:  # Rotation Vector
-                # Quaternion (14-bit fixed point, Q14)
-                q_i = struct.unpack_from("<hhhh", bytearray(packet), offset=5)
-                real = [val / (1 << 14) for val in q_i]
-                roll, pitch, yaw = quaternion_to_euler(*real)
-                print(f"Roll: {roll:.2f}°, Pitch: {pitch:.2f}°, Yaw: {yaw:.2f}°")
+        report_id = packet[4]
 
-            elif report_id == 0x01:  # Calibrated Acceleration
-                accel_raw = struct.unpack_from("<hhh", bytearray(packet), offset=5)
-                accel = [val / 100.0 for val in accel_raw]  # per datasheet, in m/s²
-                print(f"Accel X: {accel[0]:.2f} m/s², Y: {accel[1]:.2f} m/s², Z: {accel[2]:.2f} m/s²")
+        if report_id == 0x05:  # Rotation Vector
+            q_i = struct.unpack_from("<hhhh", bytearray(packet), offset=5)
+            real = [val / (1 << 14) for val in q_i]
+            roll, pitch, yaw = quaternion_to_euler(*real)
+            print(f"Roll: {roll:.2f}°, Pitch: {pitch:.2f}°, Yaw: {yaw:.2f}°")
 
+        elif report_id == 0x01:  # Acceleration
+            accel_raw = struct.unpack_from("<hhh", bytearray(packet), offset=5)
+            accel = [val / 100.0 for val in accel_raw]
+            print(f"Accel X: {accel[0]:.2f}, Y: {accel[1]:.2f}, Z: {accel[2]:.2f}")
+
+    except OSError as e:
+        if e.errno == 121:
+            print("I2C Remote I/O error: Likely tried to read when nothing was available.")
+        else:
+            print(f"OSError: {e}")
     except Exception as e:
-        print(f"Error reading sensor: {e}")
+        print(f"Unhandled exception: {e}")
+
 
 # Enable features (once)
 def enable_features():
