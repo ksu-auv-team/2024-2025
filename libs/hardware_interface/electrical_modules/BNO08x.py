@@ -2,19 +2,13 @@ import smbus2
 import struct
 import time
 import math
-import Jetson.GPIO as GPIO
 
 # === CONFIGURATION ===
 I2C_BUS = 1
 BNO085_ADDR = 0x4B  # If ADDR pin is pulled HIGH
-INT_GPIO = 17       # GPIO17 connected to INT pin on sensor
 
 # === I2C SETUP ===
 bus = smbus2.SMBus(I2C_BUS)
-
-# === GPIO SETUP ===
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(INT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # === MATH UTIL ===
 def quaternion_to_euler(w, x, y, z):
@@ -62,15 +56,13 @@ def enable_features():
 # === READ SENSOR DATA ===
 def read_sensor_data():
     try:
-        # Read the 4-byte SHTP header
         header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
-        length = header[0] | (header[1] << 8)
+        packet_length = header[0] | (header[1] << 8)
 
-        if length < 4 or length > 128:
+        if packet_length < 4 or packet_length > 128:
             return
 
-        # Read entire packet
-        packet = bus.read_i2c_block_data(BNO085_ADDR, 0, length)
+        packet = bus.read_i2c_block_data(BNO085_ADDR, 0, packet_length)
         report_id = packet[4]
 
         if report_id == 0x05:  # Rotation Vector
@@ -85,24 +77,25 @@ def read_sensor_data():
             print(f"[Accel] X: {accel[0]:.2f}, Y: {accel[1]:.2f}, Z: {accel[2]:.2f}")
 
     except OSError as e:
-        print(f"I2C Read Error: {e}")
+        if e.errno == 121:
+            print("No data ready.")
+        else:
+            print(f"I2C Error: {e}")
     except Exception as e:
         print(f"Unexpected Error: {e}")
 
 # === MAIN LOOP ===
 if __name__ == "__main__":
     try:
-        print("Initializing BNO08x...")
+        print("Initializing BNO08x in polling mode...")
         enable_features()
-        print("Listening for interrupts on GPIO17...")
 
         while True:
-            GPIO.wait_for_edge(INT_GPIO, GPIO.FALLING)
             read_sensor_data()
+            time.sleep(0.05)  # Poll every 50ms
 
     except KeyboardInterrupt:
         print("Shutting down...")
 
     finally:
-        GPIO.cleanup()
         bus.close()
