@@ -5,7 +5,7 @@ import math
 
 # I2C configuration
 I2C_BUS = 1
-BNO085_ADDR = 0x4A
+BNO085_ADDR = 0x4B
 
 # Initialize I2C bus
 bus = smbus2.SMBus(I2C_BUS)
