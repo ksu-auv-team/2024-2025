@@ -7,7 +7,7 @@ BUS_NUMBER = 1
 
 # BNO085 I2C address (default is 0x4A, can be 0x4B if DI pin is pulled high)
 #
-BNO085_ADDRESS = 0x4A
+BNO085_ADDRESS = 0x4B
 
 # BNO085 register addresses (you'll need to consult the BNO085 datasheet for the specific registers you want to read)
 # This example reads a dummy byte, you'll need to replace this with appropriate register addresses based on the desired data type.
