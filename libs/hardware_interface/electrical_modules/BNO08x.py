@@ -10,6 +10,14 @@ BNO085_ADDR = 0x4B
 # Initialize I2C bus
 bus = smbus2.SMBus(I2C_BUS)
 
+# ✅ LOW-LEVEL DIAGNOSTIC CHECK
+try:
+    data = bus.read_byte(BNO085_ADDR)
+    print(f"BNO08x responded with byte: {data}")
+except Exception as e:
+    print(f"Low-level I2C read failed: {e}")
+    exit(1)  # Exit script early if the sensor isn't responding
+
 # Helper to convert quaternion to Euler angles (roll, pitch, yaw)
 def quaternion_to_euler(w, x, y, z):
     t0 = 2.0 * (w * x + y * z)
