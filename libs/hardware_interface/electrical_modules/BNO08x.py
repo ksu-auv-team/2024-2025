@@ -41,18 +41,16 @@ def quaternion_to_euler(w, x, y, z):
 
 def read_sensor_data():
     try:
-        # Attempt to read the 4-byte SHTP header
+        # Read the header (4 bytes)
         header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
-
         packet_length = header[0] | (header[1] << 8)
 
-        # If no data, skip
-        if packet_length == 0 or packet_length > 128:
+        # If no data or nonsense length
+        if packet_length < 4 or packet_length > 128:
             return
 
-        # Read the full packet
+        # Read packet
         packet = bus.read_i2c_block_data(BNO085_ADDR, 0, packet_length)
-
         report_id = packet[4]
 
         if report_id == 0x05:  # Rotation Vector
@@ -68,12 +66,9 @@ def read_sensor_data():
 
     except OSError as e:
         if e.errno == 121:
-            print("I2C Remote I/O error: Likely tried to read when nothing was available.")
+            print("No data ready, skipping read.")
         else:
             print(f"OSError: {e}")
-    except Exception as e:
-        print(f"Unhandled exception: {e}")
-
 
 # Enable features (once)
 def enable_features():
