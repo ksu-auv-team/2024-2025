@@ -5,7 +5,7 @@ import math
 
 # === CONFIGURATION ===
 I2C_BUS = 1
-BNO085_ADDR = 0x4B  # Use 0x4A if ADDR pin is LOW
+BNO085_ADDR = 0x4B  # Use 0x4A if ADDR pin is LOW (ADDR = GND)
 
 # === I2C SETUP ===
 bus = smbus2.SMBus(I2C_BUS)
@@ -30,11 +30,21 @@ def quaternion_to_euler(w, x, y, z):
         math.degrees(yaw)
     )
 
+# === WAKE-UP PULSE ===
+def wake_sensor():
+    try:
+        print("Sending WAKE pulse to BNO08x...")
+        bus.write_byte(BNO085_ADDR, 0x00)
+        time.sleep(0.05)
+        print("WAKE complete.")
+    except Exception as e:
+        print(f"WAKE failed: {e}")
+
 # === ENABLE SENSOR FEATURES WITH ACK CHECK ===
 def enable_feature_with_ack(report_id, interval_us=100_000, timeout=1.0):
     interval = list(interval_us.to_bytes(4, 'little'))
     feature_packet = [
-        0xFD, report_id, 0x00,      # Command: Set Feature
+        0xFD, report_id, 0x00,      # Set Feature Command
         0x00, 0x00,                 # Reserved
         *interval,                 # Report Interval
         0x00, 0x00, 0x00, 0x00,     # Latency
@@ -70,20 +80,20 @@ def enable_feature_with_ack(report_id, interval_us=100_000, timeout=1.0):
 
 # === INITIALIZE SENSOR ===
 def initialize_sensor():
-    print("Waiting for BNO08x to boot...")
-    time.sleep(0.5)
+    print("Waiting 1s for BNO08x to finish booting...")
+    time.sleep(1.0)
 
     print("Enabling Rotation Vector...")
-    enable_feature_with_ack(0x05)
+    enable_feature_with_ack(0x05)  # Rotation Vector
     time.sleep(0.1)
 
     print("Enabling Accelerometer...")
-    enable_feature_with_ack(0x01)
+    enable_feature_with_ack(0x01)  # Accelerometer
     time.sleep(0.1)
 
     print("Features enabled.")
 
-# === READ SENSOR DATA ===
+# === READ SENSOR DATA WITH RAW LOGGING ===
 def read_sensor():
     try:
         header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
@@ -93,6 +103,8 @@ def read_sensor():
 
         packet = bus.read_i2c_block_data(BNO085_ADDR, 0, length)
         report_id = packet[4]
+
+        print(f"[Raw] Report ID: {hex(report_id)}, Length: {length}")
 
         if report_id == 0x05:  # Rotation Vector
             q = struct.unpack_from("<hhhh", bytearray(packet), offset=5)
@@ -104,6 +116,9 @@ def read_sensor():
             accel = struct.unpack_from("<hhh", bytearray(packet), offset=5)
             accel = [val / 100.0 for val in accel]
             print(f"[Accel] X: {accel[0]:.2f}, Y: {accel[1]:.2f}, Z: {accel[2]:.2f}")
+
+        elif report_id == 0xFB:  # Feature Response
+            print(f"[Ack] Feature ID: {hex(packet[5])}, Reason: {packet[6]}")
 
     except OSError as e:
         if e.errno == 121:
@@ -117,6 +132,7 @@ def read_sensor():
 if __name__ == "__main__":
     try:
         print("Initializing BNO08x...")
+        wake_sensor()
         initialize_sensor()
 
         print("Polling sensor...")
