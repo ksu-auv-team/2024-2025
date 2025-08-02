@@ -2,23 +2,21 @@ import smbus2
 import struct
 import time
 import math
+import Jetson.GPIO as GPIO  # Jetson-compatible GPIO library
 
-# I2C configuration
+# === CONFIGURATION ===
 I2C_BUS = 1
-BNO085_ADDR = 0x4B
+BNO085_ADDR = 0x4B  # Verified with i2cdetect
+INTERRUPT_GPIO = 17  # GPIO17 on Jetson (BCM pin numbering)
 
-# Initialize I2C bus
+# === I2C SETUP ===
 bus = smbus2.SMBus(I2C_BUS)
 
-# ✅ LOW-LEVEL DIAGNOSTIC CHECK
-try:
-    data = bus.read_byte(BNO085_ADDR)
-    print(f"BNO08x responded with byte: {data}")
-except Exception as e:
-    print(f"Low-level I2C read failed: {e}")
-    exit(1)  # Exit script early if the sensor isn't responding
+# === GPIO SETUP ===
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(INTERRUPT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-# Helper to convert quaternion to Euler angles (roll, pitch, yaw)
+# === MATH UTIL ===
 def quaternion_to_euler(w, x, y, z):
     t0 = 2.0 * (w * x + y * z)
     t1 = 1.0 - 2.0 * (x * x + y * y)
@@ -32,24 +30,44 @@ def quaternion_to_euler(w, x, y, z):
     t4 = 1.0 - 2.0 * (y * y + z * z)
     yaw = math.atan2(t3, t4)
 
-    # Convert from radians to degrees
     return (
         math.degrees(roll),
         math.degrees(pitch),
         math.degrees(yaw)
     )
 
+# === ENABLE FEATURES ===
+def enable_features():
+    rotation_feature = [
+        0xFD, 0x05, 0x00,
+        0x00, 0x00,
+        0x80, 0x84, 0x1E, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+    ]
+    bus.write_i2c_block_data(BNO085_ADDR, 0, rotation_feature)
+
+    accel_feature = [
+        0xFD, 0x01, 0x00,
+        0x00, 0x00,
+        0x80, 0x84, 0x1E, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+    ]
+    bus.write_i2c_block_data(BNO085_ADDR, 0, accel_feature)
+
+    print("Features enabled")
+    time.sleep(1)
+
+# === READ DATA ===
 def read_sensor_data():
     try:
-        # Read the header (4 bytes)
         header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
         packet_length = header[0] | (header[1] << 8)
 
-        # If no data or nonsense length
         if packet_length < 4 or packet_length > 128:
             return
 
-        # Read packet
         packet = bus.read_i2c_block_data(BNO085_ADDR, 0, packet_length)
         report_id = packet[4]
 
@@ -57,50 +75,30 @@ def read_sensor_data():
             q_i = struct.unpack_from("<hhhh", bytearray(packet), offset=5)
             real = [val / (1 << 14) for val in q_i]
             roll, pitch, yaw = quaternion_to_euler(*real)
-            print(f"Roll: {roll:.2f}°, Pitch: {pitch:.2f}°, Yaw: {yaw:.2f}°")
+            print(f"Yaw: {yaw:.2f}°, Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
 
-        elif report_id == 0x01:  # Acceleration
+        elif report_id == 0x01:  # Accelerometer
             accel_raw = struct.unpack_from("<hhh", bytearray(packet), offset=5)
             accel = [val / 100.0 for val in accel_raw]
             print(f"Accel X: {accel[0]:.2f}, Y: {accel[1]:.2f}, Z: {accel[2]:.2f}")
 
     except OSError as e:
-        if e.errno == 121:
-            print("No data ready, skipping read.")
-        else:
-            print(f"OSError: {e}")
+        print(f"I2C Read Error: {e}")
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
 
-# Enable features (once)
-def enable_features():
-    # Define rotation vector feature command
-    # Format: [Report ID (0xFD), Feature ID (0x05), Feature flags, sensitivity, report interval, batch interval, config]
-    rotation_vector_feature = [
-        0xFD, 0x05, 0x00,
-        0x00, 0x00,
-        0x80, 0x84, 0x1E, 0x00,  # Report Interval = 100,000 µs
-        0x00, 0x00, 0x00, 0x00,  # Batch Interval
-        0x00, 0x00, 0x00, 0x00   # Config
-    ]
-    # Send Set Feature command
-    bus.write_i2c_block_data(BNO085_ADDR, 0, rotation_vector_feature)
-
-    # Define accelerometer feature
-    accel_feature = [
-        0xFD, 0x01, 0x00,
-        0x00, 0x00,
-        0x80, 0x84, 0x1E, 0x00,  # Report Interval = 100,000 µs
-        0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00
-    ]
-    bus.write_i2c_block_data(BNO085_ADDR, 0, accel_feature)
-
-    print("Features enabled")
-
-# Main loop
+# === MAIN LOOP ===
 if __name__ == "__main__":
     enable_features()
-    time.sleep(1)
+    print("Waiting for sensor interrupt (GPIO17)...")
 
-    while True:
-        read_sensor_data()
-        time.sleep(0.05)
+    try:
+        while True:
+            GPIO.wait_for_edge(INTERRUPT_GPIO, GPIO.FALLING)
+            read_sensor_data()
+
+    except KeyboardInterrupt:
+        print("Interrupted by user.")
+
+    finally:
+        GPIO.cleanup()
