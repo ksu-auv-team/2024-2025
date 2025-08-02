@@ -30,8 +30,8 @@ def quaternion_to_euler(w, x, y, z):
         math.degrees(yaw)
     )
 
-# === ENABLE SENSOR FEATURES ===
-def enable_feature(report_id, interval_us=100_000):
+# === ENABLE SENSOR FEATURES WITH ACK CHECK ===
+def enable_feature_with_ack(report_id, interval_us=100_000, timeout=1.0):
     interval = list(interval_us.to_bytes(4, 'little'))
     feature_packet = [
         0xFD, report_id, 0x00,      # Command: Set Feature
@@ -42,13 +42,45 @@ def enable_feature(report_id, interval_us=100_000):
     ]
     bus.write_i2c_block_data(BNO085_ADDR, 0, feature_packet)
 
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            header = bus.read_i2c_block_data(BNO085_ADDR, 0, 4)
+            length = header[0] | (header[1] << 8)
+            if length < 4 or length > 128:
+                continue
+
+            packet = bus.read_i2c_block_data(BNO085_ADDR, 0, length)
+            report = packet[4]
+
+            if report == 0xFB and packet[5] == report_id:
+                print(f"✅ Feature {hex(report_id)} acknowledged")
+                return True
+
+        except OSError as e:
+            if e.errno == 121:
+                continue
+        except Exception:
+            continue
+
+        time.sleep(0.05)
+
+    print(f"⚠️ Timeout waiting for ack for feature {hex(report_id)}")
+    return False
+
+# === INITIALIZE SENSOR ===
 def initialize_sensor():
-    print("Enabling Rotation Vector...")
-    enable_feature(0x05)  # Rotation Vector
-    time.sleep(0.1)
-    print("Enabling Accelerometer...")
-    enable_feature(0x01)  # Accelerometer
+    print("Waiting for BNO08x to boot...")
     time.sleep(0.5)
+
+    print("Enabling Rotation Vector...")
+    enable_feature_with_ack(0x05)
+    time.sleep(0.1)
+
+    print("Enabling Accelerometer...")
+    enable_feature_with_ack(0x01)
+    time.sleep(0.1)
+
     print("Features enabled.")
 
 # === READ SENSOR DATA ===
