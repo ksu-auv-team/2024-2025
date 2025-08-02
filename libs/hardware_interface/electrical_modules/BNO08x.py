@@ -78,7 +78,7 @@ def read_sensor_data():
 
     except OSError as e:
         if e.errno == 121:
-            print("No data ready.")
+            print(f'{e}: Device not responding. Check connection.')
         else:
             print(f"I2C Error: {e}")
     except Exception as e:
