@@ -1,0 +1,1 @@
+# This module is responsible for running the database manager application.
