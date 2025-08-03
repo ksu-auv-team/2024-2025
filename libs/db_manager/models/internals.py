@@ -17,6 +17,16 @@ class InternalTemperature(db.Model):
     step_index = db.Column(db.Integer, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the InternalTemperature model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'temperature': self.temperature
+        }
+
     def __repr__(self):
         return f"<InternalTemperature {self.id} - step_index: {self.step_index}, Temperature: {self.temperature}>"
 
@@ -37,6 +47,16 @@ class InternalHumidity(db.Model):
     step_index = db.Column(db.Integer, nullable=False)
     humidity = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the InternalHumidity model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'humidity': self.humidity
+        }
+
     def __repr__(self):
         return f"<InternalHumidity {self.id} - step_index: {self.step_index}, Humidity: {self.humidity}>"
 
@@ -56,6 +76,16 @@ class InternalPressure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     step_index = db.Column(db.Integer, nullable=False)
     pressure = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        """
+        Convert the InternalPressure model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'pressure': self.pressure
+        }
 
     def __repr__(self):
         return f"<InternalPressure {self.id} - step_index: {self.step_index}, Pressure: {self.pressure}>"

@@ -26,6 +26,21 @@ class Inputs(db.Model):
     s3 = db.Column(db.Float, nullable=False)
     arm = db.Column(db.Boolean, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the Inputs model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'direction': self.direction,
+            'force': self.force,
+            's1': self.s1,
+            's2': self.s2,
+            's3': self.s3,
+            'arm': self.arm
+        }
+
     def __repr__(self):
         return f"<Inputs {self.id} - step_index: {self.step_index}, Direction: {self.direction}, Force: {self.force},\
                   S1: {self.s1}, S2: {self.s2}, S3: {self.s3}, Arm: {self.arm}>"

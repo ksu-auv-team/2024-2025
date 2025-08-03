@@ -1,29 +1,36 @@
-# This module is responsible for loading configuration settings for the application.
-
-import json
+# libs/db_manager/config_loader.py
 import os
+from pathlib import Path
+import yaml
 
-def load_config(app_name : str) -> dict:
+
+class ConfigLoader:
     """
-    Load configuration settings from a JSON file for the specified application.
-    
-    :param app_name: Name of the application to load configuration for.
-    :return: Dictionary containing configuration settings (including defaults).
+    Loads a YAML config (e.g. local_configs/db_manager.yaml),
+    merges with global_config.yaml and environment vars.
     """
-    # Get the project root directory (assuming this script is always inside the project)
-    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-    app_config_path = os.path.join(project_dir, 'config', f'{app_name}_config.json')
-    if not os.path.exists(app_config_path):
-        raise FileNotFoundError(f"Configuration file '{app_config_path}' does not exist.")
+    def __init__(self, path=None):
+        config_path = Path(path or os.getenv("DB_MANAGER_CONFIG", "config/local_configs/db_manager.yaml"))
+        self._config = {}
+        if config_path.exists():
+            with config_path.open() as f:
+                self._config = yaml.safe_load(f) or {}
 
-    with open(app_config_path, 'r') as config_file:
-        config = json.load(config_file)
+        # Fall back to global_config.yaml on reuse
+        global_path = Path("config/global_config.yaml")
+        if global_path.exists():
+            with global_path.open() as gf:
+                global_cfg = yaml.safe_load(gf) or {}
+            self._config = {**global_cfg.get("db_manager", {}), **self._config}
 
-    default_config_path = os.path.join(project_dir, 'config', 'default_config.json')
-    if os.path.exists(default_config_path):
-        with open(default_config_path, 'r') as default_file:
-            default_config = json.load(default_file)
-            config.update(default_config)
+    def as_dict(self):
+        return {
+            "SQLALCHEMY_DATABASE_URI": self._config.get("database_uri", "sqlite:///db_manager.db"),
+            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            "JSON_SORT_KEYS": False,
+            **self._config.get("flask", {})
+        }
 
-    return config
+    def __repr__(self):
+        return f"<ConfigLoader  uri={self._config.get('database_uri')}>"

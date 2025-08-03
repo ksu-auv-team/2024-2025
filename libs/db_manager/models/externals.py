@@ -17,6 +17,16 @@ class ExternalPressure(db.Model):
     step_index = db.Column(db.Integer, nullable=False)
     pressure = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the ExternalPressure model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'pressure': self.pressure
+        }
+
     def __repr__(self):
         return f"<ExternalPressure {self.id} - step_index: {self.step_index}, Pressure: {self.pressure}>"
 
@@ -36,6 +46,16 @@ class ExternalDepth(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     step_index = db.Column(db.Integer, nullable=False)
     depth = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        """
+        Convert the ExternalDepth model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'depth': self.depth
+        }
 
     def __repr__(self):
         return f"<ExternalDepth {self.id} - step_index: {self.step_index}, Depth: {self.depth}>"

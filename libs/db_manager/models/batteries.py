@@ -36,6 +36,24 @@ class Batteries(db.Model):
     temperature2 = db.Column(db.Float, nullable=False)
     temperature3 = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the Batteries model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'voltage1': self.voltage1,
+            'voltage2': self.voltage2,
+            'voltage3': self.voltage3,
+            'current1': self.current1,
+            'current2': self.current2,
+            'current3': self.current3,
+            'temperature1': self.temperature1,
+            'temperature2': self.temperature2,
+            'temperature3': self.temperature3
+        }
+
     def __repr__(self):
         return f"<Batteries {self.id} - step_index: {self.step_index}, Voltage1: {self.voltage1}, Voltage2: {self.voltage2},\
                   Voltage3: {self.voltage3}, Current1: {self.current1}, Current2: {self.current2}, Current3: {self.current3},\

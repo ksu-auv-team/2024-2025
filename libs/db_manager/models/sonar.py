@@ -19,5 +19,16 @@ class Sonar(db.Model):
     distance = db.Column(db.Float, nullable=False)
     angle = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the Sonar model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'distance': self.distance,
+            'angle': self.angle
+        }
+
     def __repr__(self):
         return f"<Sonar {self.id} - step_index: {self.step_index}, Distance: {self.distance}, Angle: {self.angle}>"

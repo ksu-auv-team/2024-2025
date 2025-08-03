@@ -28,5 +28,20 @@ class IMU(db.Model):
     pitch = db.Column(db.Float, nullable=False)
     yaw = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the IMU model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'X': self.X,
+            'Y': self.Y,
+            'Z': self.Z,
+            'roll': self.roll,
+            'pitch': self.pitch,
+            'yaw': self.yaw
+        }
+
     def __repr__(self):
         return f"<IMU {self.id} - step_index: {self.step_index}, X: {self.X}, Y: {self.Y}, Z: {self.Z}, Roll: {self.roll}, Pitch: {self.pitch}, Yaw: {self.yaw}>"

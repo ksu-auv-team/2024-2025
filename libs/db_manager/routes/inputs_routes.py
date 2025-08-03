@@ -1,60 +1,60 @@
+# libs/db_manager/routes/inputs_routes.py
 from flask import Blueprint, request, jsonify
-from db_manager.models.inputs import Inputs
-from db_manager import db
+from ..logic import (
+    create_input,
+    list_inputs,
+    get_latest_input,
+    get_input_by_step,
+    create_inputs_batch,
+    Error,
+    NotFound,
+    DuplicateStep,
+)
 
-inputs_bp = Blueprint('inputs', __name__)
+inputs_bp = Blueprint("inputs", __name__, url_prefix="/inputs")
 
-# Inputs routes
-# Post route to add a new input
-@inputs_bp.route('/post_input', methods=['POST'])
+
+@inputs_bp.route("/", methods=["POST"])
 def post_input():
     try:
-        data = request.get_json()
-        new_input = Inputs(
-            step_index=data['step_index'],
-            direction=data['direction'],
-            force=data['force'],
-            s1=data['s1'],
-            s2=data['s2'],
-            s3=data['s3'],
-            arm=data['arm']
-        )
-        db.session.add(new_input)
-        db.session.commit()
-        return jsonify({"message": "Input added successfully"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 400
-# Get route to retrieve all inputs
-@inputs_bp.route('/get_inputs', methods=['GET'])
-def get_inputs():
-    try:
-        inputs = Inputs.query.all()
-        return jsonify([input.__dict__ for input in inputs]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        result = create_input(request.json or {})
+        return jsonify(result), 201
+    except Error as e:
+        code = getattr(e, "status_code", 400)
+        return jsonify({"error": str(e)}), code
 
-# Get route to retrieve a specific input by step_index
-@inputs_bp.route('/get_input/<int:step_index>', methods=['GET'])
-def get_input(step_index):
-    try:
-        input_data = Inputs.query.filter_by(step_index=step_index).first()
-        if input_data:
-            return jsonify(input_data.__dict__), 200
-        else:
-            return jsonify({"error": "Input not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
 
-# Get route to retrieve the latest input
-@inputs_bp.route('/get_latest_input', methods=['GET'])
-def get_latest_input():
+@inputs_bp.route("/batch", methods=["POST"])
+def post_batch():
     try:
-        latest_input = Inputs.query.order_by(Inputs.id.desc()).first()
-        if latest_input:
-            return jsonify(latest_input.__dict__), 200
-        else:
-            return jsonify({"error": "No inputs found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        if not isinstance(request.json, list):
+            raise Error("Payload must be a JSON‐array")
+        result = create_inputs_batch(request.json)
+        return jsonify({"count": len(result), "items": result}), 201
+    except Error as e:
+        return jsonify({"error": str(e)}), getattr(e, "status_code", 400)
+
+
+@inputs_bp.route("/", methods=["GET"])
+def list_all():
+    offset = request.args.get("offset", type=int, default=0)
+    limit = request.args.get("limit", type=int, default=100)
+    return jsonify(list_inputs(offset, limit)), 200
+
+
+@inputs_bp.route("/latest", methods=["GET"])
+def latest():
+    try:
+        return jsonify(get_latest_input()), 200
+    except NotFound as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@inputs_bp.route("/<int:step_index>", methods=["GET"])
+def get_by_step(step_index):
+    try:
+        return jsonify(get_input_by_step(step_index)), 200
+    except NotFound as e:
+        return jsonify({"error": str(e)}), 404
+
     

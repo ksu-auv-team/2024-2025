@@ -43,6 +43,29 @@ class Outputs(db.Model):
     S3 = db.Column(db.Float, nullable=False)
     arm = db.Column(db.Boolean, nullable=False)
 
+    def to_dict(self):
+        """
+        Convert the Outputs model instance to a dictionary.
+        """
+        return {
+            'id': self.id,
+            'step_index': self.step_index,
+            'direction': self.direction,
+            'force': self.force,
+            'M1': self.M1,
+            'M2': self.M2,
+            'M3': self.M3,
+            'M4': self.M4,
+            'M5': self.M5,
+            'M6': self.M6,
+            'M7': self.M7,
+            'M8': self.M8,
+            'S1': self.S1,
+            'S2': self.S2,
+            'S3': self.S3,
+            'arm': self.arm
+        }
+
     def __repr__(self):
         return f"<Outputs {self.id} - step_index: {self.step_index}, Direction: {self.direction}, Force: {self.force},\
                   M1: {self.M1}, M2: {self.M2}, M3: {self.M3}, M4: {self.M4}, M5: {self.M5}, M6: {self.M6},\
