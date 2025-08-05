@@ -1,4 +1,4 @@
-from db_manager import db
+from . import db
 
 class Batteries(db.Model):
     """

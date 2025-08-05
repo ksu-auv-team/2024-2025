@@ -1,36 +1,19 @@
-# libs/db_manager/config_loader.py
+import json
 import os
-from pathlib import Path
-import yaml
 
+def load_config(app_name : str) -> dict:
+    project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    project_config_path = os.path.join(project_path, "config/local_configs", f"{app_name}.json")
+    global_config_path = os.path.join(project_path, "config/global_config.json")
+    if not os.path.exists(project_config_path):
+        raise FileNotFoundError(f"Configuration file {project_config_path} does not exist.")
 
-class ConfigLoader:
-    """
-    Loads a YAML config (e.g. local_configs/db_manager.yaml),
-    merges with global_config.yaml and environment vars.
-    """
+    with open(project_config_path) as f:
+        project_config = json.load(f)
 
-    def __init__(self, path=None):
-        config_path = Path(path or os.getenv("DB_MANAGER_CONFIG", "config/local_configs/db_manager.yaml"))
-        self._config = {}
-        if config_path.exists():
-            with config_path.open() as f:
-                self._config = yaml.safe_load(f) or {}
+    with open(global_config_path) as f:
+        global_config = json.load(f)
 
-        # Fall back to global_config.yaml on reuse
-        global_path = Path("config/global_config.yaml")
-        if global_path.exists():
-            with global_path.open() as gf:
-                global_cfg = yaml.safe_load(gf) or {}
-            self._config = {**global_cfg.get("db_manager", {}), **self._config}
-
-    def as_dict(self):
-        return {
-            "SQLALCHEMY_DATABASE_URI": self._config.get("database_uri", "sqlite:///db_manager.db"),
-            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-            "JSON_SORT_KEYS": False,
-            **self._config.get("flask", {})
-        }
-
-    def __repr__(self):
-        return f"<ConfigLoader  uri={self._config.get('database_uri')}>"
+    # Merge project config with global config
+    merged_config = {**global_config, **project_config}
+    return merged_config
