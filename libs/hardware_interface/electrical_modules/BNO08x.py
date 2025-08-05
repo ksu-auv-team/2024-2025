@@ -1,45 +1,78 @@
-# SPDX-FileCopyrightText: 2020 Bryan Siepert, written for Adafruit Industries
-#
-# SPDX-License-Identifier: Unlicense
+import smbus2
 import time
+import struct
 
-import board
-import busio
+I2C_BUS = 1
+I2C_ADDR = 0x4B
 
-from adafruit_bno08x import (
-    BNO_REPORT_ACCELEROMETER,
-    BNO_REPORT_GYROSCOPE,
-    BNO_REPORT_MAGNETOMETER,
-    BNO_REPORT_ROTATION_VECTOR,
-)
-from adafruit_bno08x.i2c import BNO08X_I2C
+# Feature report IDs
+FEATURE_ROTATION_VECTOR = 0x05
+INPUT_REPORT_ID = 0x05
+SHTP_HEADER_LEN = 4
+SENSOR_REPORT_ROTATION_VECTOR = 0x05
 
-i2c = busio.I2C(board.SCL, board.SDA, frequency=400000)
-bno = BNO08X_I2C(i2c, address=0x4B)
+# SHTP channels
+CHANNEL_CONTROL = 2
+CHANNEL_INPUT = 1
 
-bno.enable_feature(BNO_REPORT_ACCELEROMETER)
-bno.enable_feature(BNO_REPORT_GYROSCOPE)
-bno.enable_feature(BNO_REPORT_MAGNETOMETER)
-bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
+# Initialize I2C
+bus = smbus2.SMBus(I2C_BUS)
 
-while True:
-    time.sleep(0.5)
-    print("Acceleration:")
-    accel_x, accel_y, accel_z = bno.acceleration
-    print("X: %0.6f  Y: %0.6f Z: %0.6f  m/s^2" % (accel_x, accel_y, accel_z))
-    print("")
+# === Utilities ===
 
-    print("Gyro:")
-    gyro_x, gyro_y, gyro_z = bno.gyro
-    print("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
-    print("")
+def shtp_send(channel, data):
+    length = len(data)
+    header = [length & 0xFF, (length >> 8) & 0xFF, channel, 0]
+    bus.write_i2c_block_data(I2C_ADDR, 0, header + data)
 
-    print("Magnetometer:")
-    mag_x, mag_y, mag_z = bno.magnetic
-    print("X: %0.6f  Y: %0.6f Z: %0.6f uT" % (mag_x, mag_y, mag_z))
-    print("")
+def enable_rotation_vector():
+    feature_cmd = [
+        0xFD,  # Set Feature Command
+        FEATURE_ROTATION_VECTOR,
+        0x00, 0x00, 0x00, 0x00,  # Feature flags
+        0x20, 0x4E, 0x00, 0x00,  # Report interval (20ms -> 50Hz)
+        0x00, 0x00, 0x00, 0x00,  # Batch interval
+        0x00, 0x00              # Sensor-specific config
+    ]
+    shtp_send(CHANNEL_CONTROL, feature_cmd)
+    print("Rotation Vector feature enabled.")
 
-    print("Rotation Vector Quaternion:")
-    quat_i, quat_j, quat_k, quat_real = bno.quaternion
-    print("I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real))
-    print("")
+def parse_quaternion(data):
+    # Data format: [report_id, status, delay, quat_i, quat_j, quat_k, quat_real, accuracy]
+    quat_i = struct.unpack_from("<h", bytes(data), 4)[0] / 16384.0
+    quat_j = struct.unpack_from("<h", bytes(data), 6)[0] / 16384.0
+    quat_k = struct.unpack_from("<h", bytes(data), 8)[0] / 16384.0
+    quat_real = struct.unpack_from("<h", bytes(data), 10)[0] / 16384.0
+    return quat_i, quat_j, quat_k, quat_real
+
+# === Main Logic ===
+
+print("Initializing BNO08x on I2C bus 1 at address 0x4B...")
+time.sleep(1)
+enable_rotation_vector()
+time.sleep(0.5)
+
+try:
+    while True:
+        # Read SHTP packet header
+        try:
+            raw = bus.read_i2c_block_data(I2C_ADDR, 0, 32)
+        except OSError as e:
+            print(f"Read error: {e}")
+            continue
+
+        packet_length = raw[0] | (raw[1] << 8)
+        channel = raw[2]
+
+        if packet_length == 0:
+            continue
+
+        if channel == CHANNEL_INPUT and raw[4] == SENSOR_REPORT_ROTATION_VECTOR:
+            quat = parse_quaternion(raw)
+            print(f"Quaternion: i={quat[0]:.4f}, j={quat[1]:.4f}, k={quat[2]:.4f}, real={quat[3]:.4f}")
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    print("Stopping...")
+finally:
+    bus.close()
