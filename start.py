@@ -3,7 +3,7 @@ import argparse
 import time
 
 parser = argparse.ArgumentParser(description='Start the application')
-parser.add_argument('--ip', type=str, default='localhost', help='IP to run the application on')
+parser.add_argument('--ip', type=str, default='0.0.0.0', help='IP to run the application on')
 parser.add_argument('--port', type=int, default=5000, help='Port to run the application on')
 parser.add_argument('--debug', action='store_true', help='Run the application in debug mode')
 parser.add_argument('--HI', action='store_true', help='Run the application with the Hardware Interface')
