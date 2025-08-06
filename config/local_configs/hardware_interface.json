@@ -1,0 +1,12 @@
+{
+    "IMU_Address": "0x4a",
+    "Hydrophone_Address": "0x4b",
+    "Motor_Controller_Address": "0x4c",
+    "Blank_Address": "0x4d",
+    "Display_Address": "0x4e",
+    "Torpedo_Address": "0x4f",
+    "Arm_Controller_Address": "0x50",
+    "Power_Safety_Address": "0x51",
+    "DB_Address": "localhost",
+    "DB_Port": 5000
+}
