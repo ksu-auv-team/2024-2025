@@ -92,6 +92,7 @@ def main():
                     parse_packet(pkt)
             else:
                 time.sleep(0.01)  # Prevent hammering the I2C bus
+            time.sleep(0.1)  # Polling interval
     except KeyboardInterrupt:
         print("🛑 Interrupted by user")
     finally:
