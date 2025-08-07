@@ -92,6 +92,7 @@ def main():
                     parse_packet(pkt)
             else:
                 print("⚠️  H_INTN timeout — no new data")
+            time.sleep(0.1)
     except KeyboardInterrupt:
         print("🛑 Interrupted by user")
     finally:
