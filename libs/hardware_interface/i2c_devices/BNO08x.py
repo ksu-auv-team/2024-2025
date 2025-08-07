@@ -1,3 +1,4 @@
+import Jetson.GPIO as GPIO
 import smbus2
 import struct
 import time
@@ -6,6 +7,7 @@ import time
 I2C_BUS = 1
 I2C_ADDRESS = 0x4B  # Depends on SA0 pin (0x4A or 0x4B)
 MAX_PACKET_SIZE = 512
+INT_PIN = 17  # GPIO pin for interrupt (if used)
 
 # SHTP Header Fields
 SHTP_HEADER_LENGTH = 4
@@ -30,6 +32,18 @@ class BNO08X:
         self.sequence_numbers = [0] * 6  # One for each channel
         self.rotation_vector_enabled = False
         self.init_sensor()
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(INT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    def wait_for_interrupt(self):
+        """ Wait for an interrupt signal from the sensor """
+        start = time.time()
+        while GPIO.input(INT_PIN) == GPIO.HIGH:
+            if time.time() - start > 5:
+                raise TimeoutError("Timeout waiting for sensor interrupt")
+            time.sleep(0.01)
+        # Interrupt received
+        print("Interrupt received from sensor")
 
     def init_sensor(self):
         """ Wait for boot and initialize rotation vector """
@@ -119,6 +133,7 @@ class BNO08X:
     def loop_print(self):
         print("Reading rotation vector data...")
         while True:
+            self.wait_for_interrupt()
             result = self.read_rotation_vector()
             if result:
                 print(f"Quat: x={result['x']:.4f}, y={result['y']:.4f}, z={result['z']:.4f}, w={result['w']:.4f}, acc={result['accuracy']}")
