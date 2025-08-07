@@ -78,10 +78,13 @@ class BNO08X:
         self.sequence_numbers[channel] = (self.sequence_numbers[channel] + 1) % 256
         packet = header + payload
 
+        print(f"📤 Sending packet on channel {channel}: {packet}")
         try:
+            print(f"address: {self.address}, packet: {packet}")
             msg = i2c_msg.write(self.address, packet)
             bus.i2c_rdwr(msg)
         except OSError as e:
+            print(f"❌ Error sending packet: {e}")
             raise RuntimeError(f"Failed to send I2C packet: {e}")
 
     def enable_rotation_vector(self, report_interval_us=10000):
