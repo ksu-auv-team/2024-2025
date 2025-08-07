@@ -43,7 +43,7 @@ def wait_for_H_INTN(timeout=3.0):
     while GPIO.input(INT_PIN) == GPIO.HIGH:
         if time.time() - start > timeout:
             return False
-        time.sleep(0.001)
+        time.sleep(0.1)
     return True
 
 def read_shtp_packet():
