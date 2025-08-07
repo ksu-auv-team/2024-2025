@@ -2,6 +2,7 @@ import smbus2
 import struct
 import time
 import Jetson.GPIO as GPIO
+from smbus2 import i2c_msg
 
 # === CONFIGURATION ===
 I2C_BUS = 1
@@ -76,7 +77,12 @@ class BNO08X:
         header = [length & 0xFF, (length >> 8) & 0xFF, channel, self.sequence_numbers[channel]]
         self.sequence_numbers[channel] = (self.sequence_numbers[channel] + 1) % 256
         packet = header + payload
-        bus.write_i2c_block_data(self.address, 0, packet)
+
+        try:
+            msg = i2c_msg.write(self.address, packet)
+            bus.i2c_rdwr(msg)
+        except OSError as e:
+            raise RuntimeError(f"Failed to send I2C packet: {e}")
 
     def enable_rotation_vector(self, report_interval_us=10000):
         print("🛰️ Enabling Rotation Vector...")
