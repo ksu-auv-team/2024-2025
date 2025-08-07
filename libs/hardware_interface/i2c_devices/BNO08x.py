@@ -136,6 +136,7 @@ def main():
                     parse_packet(pkt)
             else:
                 time.sleep(0.01)
+            time.sleep(0.1)  # Polling delay
     except KeyboardInterrupt:
         print("🛑 Interrupted by user")
     finally:
