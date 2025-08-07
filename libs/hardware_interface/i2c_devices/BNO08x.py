@@ -86,17 +86,17 @@ def main():
     print("🟢 SHTP reader started (press Ctrl+C to stop)")
     try:
         while True:
-            if wait_for_H_INTN(timeout=3.0):
+            if GPIO.input(INT_PIN) == GPIO.LOW:
                 pkt = read_shtp_packet()
                 if pkt:
                     parse_packet(pkt)
             else:
-                print("⚠️  H_INTN timeout — no new data")
-            time.sleep(0.1)
+                time.sleep(0.01)  # Prevent hammering the I2C bus
     except KeyboardInterrupt:
         print("🛑 Interrupted by user")
     finally:
         GPIO.cleanup()
+
 
 if __name__ == "__main__":
     main()
