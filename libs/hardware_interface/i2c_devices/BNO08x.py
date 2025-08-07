@@ -7,7 +7,7 @@ from smbus2 import i2c_msg
 # === CONFIGURATION ===
 I2C_BUS = 1
 I2C_ADDRESS = 0x4B
-H_INTN_GPIO = 17  # AGX Orin GPIO pin connected to BNO08x H_INTN
+H_INTN_GPIO = 17
 
 # === CONSTANTS ===
 SHTP_HEADER_LENGTH = 4
@@ -15,12 +15,13 @@ CHANNEL_CONTROL = 2
 CHANNEL_INPUT_REPORTS = 3
 
 REPORT_ID_ROTATION_VECTOR = 0x05
+SYSTEM_REPORT_IDS = {0xF9, 0xFA, 0xFB, 0xFC}
 
-# === GPIO SETUP ===
+# === INIT GPIO ===
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(H_INTN_GPIO, GPIO.IN)
 
-# === I2C BUS SETUP ===
+# === INIT I2C ===
 bus = smbus2.SMBus(I2C_BUS)
 
 class BNO08X:
@@ -30,8 +31,7 @@ class BNO08X:
         self.rotation_vector_enabled = False
 
         self.wait_for_interrupt("boot")
-        self.flush_input()
-        self.wait_for_interrupt("ready after flush")
+        self.sync_boot_messages()
         self.enable_rotation_vector()
         self.wait_for_interrupt("data ready")
 
@@ -44,29 +44,37 @@ class BNO08X:
             time.sleep(0.01)
         print(f"✅ H_INTN ({label}) LOW")
 
-    def flush_input(self):
-        """ Clear out any existing input packets """
-        try:
-            while True:
-                length = self.read_header_length()
-                if length == 0:
-                    break
-                self.read_payload(length)
-        except:
-            pass
-
     def read_header_length(self):
         try:
             header = bus.read_i2c_block_data(self.address, 0, 4)
             length = header[0] | (header[1] << 8)
-            return length - 4
-        except:
-            return 0
+            channel = header[2]
+            return length - 4, channel
+        except Exception:
+            return 0, None
 
     def read_payload(self, length):
         if length <= 0:
             return []
         return bus.read_i2c_block_data(self.address, 0, length)
+
+    def sync_boot_messages(self):
+        print("🔍 Reading boot messages...")
+        while True:
+            self.wait_for_interrupt("boot sync")
+            length, channel = self.read_header_length()
+            if length <= 0 or channel is None:
+                continue
+
+            payload = self.read_payload(length)
+            if not payload:
+                continue
+
+            report_id = payload[0]
+            print(f"📥 Boot Report ID: 0x{report_id:02X} Payload: {payload}")
+            if report_id in SYSTEM_REPORT_IDS:
+                print("✅ Boot sync complete.")
+                break
 
     def us_to_bytes(self, value):
         return [value & 0xFF, (value >> 8) & 0xFF,
@@ -80,7 +88,6 @@ class BNO08X:
 
         print(f"📤 Sending packet on channel {channel}: {packet}")
         try:
-            print(f"address: {self.address}, packet: {packet}")
             msg = i2c_msg.write(self.address, packet)
             bus.i2c_rdwr(msg)
         except OSError as e:
@@ -94,12 +101,11 @@ class BNO08X:
             REPORT_ID_ROTATION_VECTOR,
             0x00,               # Feature Flags
             0x00, 0x00,         # Change sensitivity
-            *self.us_to_bytes(report_interval_us),  # Report Interval (100Hz)
-            0x00, 0x00, 0x00, 0x00,  # Batch Interval
-            0x00, 0x00, 0x00, 0x00   # Sensor-specific config
+            *self.us_to_bytes(report_interval_us),  # Report Interval
+            0x00, 0x00, 0x00, 0x00,                 # Batch interval
+            0x00, 0x00, 0x00, 0x00                  # Sensor-specific config
         ]
         self.send_packet(CHANNEL_CONTROL, feature_cmd)
-        self.rotation_vector_enabled = True
         print("✅ Rotation Vector enabled.")
 
     def read_rotation_vector(self):
@@ -115,7 +121,6 @@ class BNO08X:
         if payload[0] != REPORT_ID_ROTATION_VECTOR:
             return None
 
-        # Quaternion: X, Y, Z, Real (bytes 5-12), accuracy (byte 13)
         quat = struct.unpack_from("<hhhh", bytes(payload[5:13]))
         accuracy = payload[13]
 
