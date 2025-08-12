@@ -1,0 +1,393 @@
+/* =========================
+   Root Theme (Dark Mode)
+   ========================= */
+:root {
+  --bg: #121212;
+  --surface: #1E1E1E;
+  --surface-2: #2C2C2E;
+  --border: #3A3A3C;
+  --text: #E0E0E0;
+  --text-muted: #A0A0A0;
+  --primary: #4FC3F7;
+  --accent: #66FF66;
+  --danger: #F44336;
+  --warning: #FFCA28;
+  --info: #29B6F6;
+
+  --nav-height: 56px;
+  --radius: 14px;
+  --gap: 14px;
+  --shadow: 0 8px 24px rgba(0,0,0,.35);
+  --focus: 0 0 0 2px rgba(79,195,247,.45);
+}
+
+/* Optional light mode fallback if needed */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --surface-2: #f1f3f5;
+    --border: #dcdfe4;
+    --text: #1e1e1e;
+    --text-muted: #555;
+    --primary: #1565C0;
+    --accent: #0E9F6E;
+  }
+}
+
+/* =========================
+   Reset / Base
+   ========================= */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.45;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button, [role="tab"] {
+  font: inherit;
+  color: inherit;
+}
+
+/* Focus rings for accessibility */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-radius: 10px;
+}
+
+/* =========================
+   Layout: Navbar
+   ========================= */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: linear-gradient(0deg, var(--surface), var(--surface-2));
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.navbar .brand {
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.navbar .nav-links {
+  display: flex;
+  gap: 10px;
+}
+
+.navbar .nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  border: 1px solid transparent;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.navbar .nav-link:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.navbar .nav-link.active {
+  background: rgba(79,195,247,0.12);
+  border-color: rgba(79,195,247,0.35);
+}
+
+/* =========================
+   Page Wrapper
+   ========================= */
+.page {
+  padding: 16px;
+  min-height: calc(100vh - var(--nav-height));
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--gap);
+}
+
+/* Generic card/surface */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Section headers */
+.section-title {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+/* =========================
+   Camera View Page
+   ========================= */
+/* Container that holds two video columns */
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+/* Video pane */
+.video-pane {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+
+.video-pane .video-title {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.video-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 4px);
+  background: #000;
+  border: 1px solid var(--border);
+  min-height: 300px;
+}
+
+/* If embedding <video> or <img> */
+.video-frame video,
+.video-frame img,
+.video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Adjust if you want 'contain' */
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 980px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   Tabs (Shared by Data & Settings)
+   ========================= */
+.tabs {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--gap);
+  min-height: 0; /* allow child to shrink */
+}
+
+.tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tab {
+  appearance: none;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.tab:hover { background: #2a2a2c; }
+.tab[aria-selected="true"] {
+  background: rgba(79,195,247,0.14);
+  border-color: rgba(79,195,247,0.45);
+}
+
+.tab-panels {
+  min-height: 0;
+}
+
+.tab-panel {
+  display: none;
+  min-height: 0;
+}
+.tab-panel.active {
+  display: grid;
+}
+
+/* =========================
+   Data View: Table + Chart Split
+   ========================= */
+.data-split {
+  grid-template-columns: 1.2fr 1fr; /* table slightly wider */
+  gap: var(--gap);
+}
+
+/* Shared panel styles */
+.panel {
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+/* Scroll areas to avoid page overflow */
+.scroll {
+  overflow: auto;
+  min-height: 0;
+  border-radius: calc(var(--radius) - 6px);
+}
+
+/* Table styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #242426;
+  color: var(--text);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  z-index: 1;
+}
+
+.table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.table tbody tr:hover {
+  background: rgba(79,195,247,0.06);
+}
+
+/* Chart area */
+.chart {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 320px; /* adjust as needed */
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+/* Responsive: stack table & chart on small screens */
+@media (max-width: 1100px) {
+  .data-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   Settings: Tabbed JSON Editor Panels
+   ========================= */
+.settings-split {
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.settings-card {
+  padding: 12px;
+}
+
+/* JSON editor / textarea */
+.json-editor {
+  width: 100%;
+  min-height: 320px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  resize: vertical;
+}
+
+/* Settings action bar */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.button {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.button:hover { background: #2a2a2c; }
+.button.primary {
+  border-color: rgba(79,195,247,0.45);
+  background: rgba(79,195,247,0.14);
+}
+.button.danger {
+  border-color: rgba(244,67,54,0.45);
+  background: rgba(244,67,54,0.14);
+}
+
+/* Responsive: stack settings panels */
+@media (max-width: 1100px) {
+  .settings-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   Utility
+   ========================= */
+.hidden { display: none !important; }
+
+.hr {
+  height: 1px;
+  background: var(--border);
+  border: none;
+  margin: 8px 0;
+}
+
+/* Optional subtle fade-in */
+.fade-in {
+  animation: fadeIn .25s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

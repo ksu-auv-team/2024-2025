@@ -3,8 +3,7 @@ import smbus2
 import logging
 from .config_loader import load_config
 from .logic import sendDataToServer, getDataFromServer
-
-from i2c_devices import BNO08x
+from .i2c_devices.BNO08x import BNO08x
 
 class HardwareInterface:
     def __init__(self):
@@ -42,6 +41,8 @@ class HardwareInterface:
             "Hydrophone_Data": {},
             "Power_Safety_Data": {}
         }
+
+        self.bno08x = BNO08x(port=self.config['BNO08x_Port'], baudrate=self.config['BNO08x_Baudrate'], timeout=self.config['BNO08x_Timeout'])
 
     def _IMU(self):
         pass

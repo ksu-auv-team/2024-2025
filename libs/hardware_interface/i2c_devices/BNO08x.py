@@ -1,146 +1,236 @@
-import smbus2
-import Jetson.GPIO as GPIO
-import time
-import struct
-from smbus2 import i2c_msg
+"""
+@file bno08x_serial.py
+@brief Read BNO08x packets from a microcontroller over a serial cable and return parsed JSON.
+@details
+  Expects lines like:
+      {X_Vel,Y_Vel,Z_Vel,Roll,Pitch,Yaw}
+  where each field is an integer in [0..256] with 127 ~ center.
+  This matches the Arduino sketch that prints one packet per line via Serial.println().
 
-# === CONFIG ===
-I2C_BUS = 1
-I2C_ADDR = 0x4B
-INT_PIN = 17  # H_INTN interrupt GPIO
+  The parser:
+    - Reads newline-terminated lines from the serial port.
+    - Validates the brace-enclosed, comma-separated format.
+    - Converts the six values to integers, clamps to [0..256].
+    - Returns a Python dict (JSON-serializable) with:
+        * raw: original 0..256 values
+        * signed: values centered at 0 by subtracting 127 (range ~[-127..+129])
+        * engineering units (optional back-conversion):
+            - vel_ms: velocities in m/s (requires VEL_MAX to match MCU)
+            - euler_deg: angles in degrees, assuming MCU mapped [-180..+180] → [0..256]
 
-# === SHTP CONSTANTS ===
-SHTP_HEADER_LEN = 4
-sequence_numbers = [0] * 6  # one per channel
+  Adjust VEL_MAX_MPS if your Arduino code uses a different velocity scale.
+"""
 
-CHANNEL_CONTROL = 2
-CHANNEL_INPUT_REPORT = 3
+import os
+import json
+import serial
+from typing import Optional, Dict, Any
 
-# === REPORT IDS ===
-CHANNEL_NAMES = {
-    0: "Command", 1: "Executable", 2: "Control",
-    3: "Input Report", 4: "Wake Report", 5: "Gyro Rotation"
-}
-KNOWN_REPORT_IDS = {
-    0xF9: "Product ID Response",
-    0xFA: "Initialization Response",
-    0xFB: "Error Report",
-    0xFC: "Base Timestamp",
-    0xFD: "Set Feature Command",
-    0xFE: "Get Feature Response",
-    0x05: "Rotation Vector",
-    0x01: "Accelerometer",
-    0x02: "Gyroscope"
-}
 
-# === INIT I2C AND GPIO ===
-bus = smbus2.SMBus(I2C_BUS)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(INT_PIN, GPIO.IN)
+class BNO08x:
+    """
+    @brief Serial interface helper for BNO08x data from a microcontroller.
+    @details
+      Reads ASCII lines in the format "{x,y,z,roll,pitch,yaw}" where each value is 0..256.
+      Provides convenience methods to return parsed data as JSON/dict.
+    """
 
-def wait_for_H_INTN(timeout=3.0):
-    start = time.time()
-    while GPIO.input(INT_PIN) == GPIO.HIGH:
-        if time.time() - start > timeout:
-            return False
-        time.sleep(0.1)
-    return True
+    # Must match the scale used on the microcontroller (Arduino sketch).
+    VEL_MAX_MPS: float = 2.0  # [-VEL_MAX, +VEL_MAX] ↔ [0..256]
 
-def read_shtp_packet():
-    try:
-        header = bus.read_i2c_block_data(I2C_ADDR, 0, 4)
-        length = header[0] | (header[1] << 8)
-        channel = header[2]
-        sequence = header[3]
-        payload_length = length - 4
-        payload = bus.read_i2c_block_data(I2C_ADDR, 0, payload_length) if payload_length > 0 else []
+    def __init__(self, port: str = "/dev/ttyUSB0", baudrate: int = 115200, timeout: float = 1.0):
+        """
+        @brief Constructor initializes (but does not necessarily open) the serial port.
+        @param port Serial device path (e.g., '/dev/ttyACM0', '/dev/ttyUSB0', 'COM3').
+        @param baudrate Serial baud rate; must match the microcontroller.
+        @param timeout Read timeout in seconds for non-blocking behavior.
+        """
+        self.port = port
+        self.baudrate = baudrate
+        self.timeout = timeout
+        # Defer opening until connect() to allow error handling and port changes.
+        self.serial: Optional[serial.Serial] = None
+
+    def connect(self) -> None:
+        """
+        @brief Open the serial port if not already open.
+        """
+        if self.serial is None:
+            self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
+        elif not self.serial.is_open:
+            self.serial.open()
+        # Optional: flush any stale bytes
+        self.serial.reset_input_buffer()
+        self.serial.reset_output_buffer()
+
+    def disconnect(self) -> None:
+        """
+        @brief Close the serial port if open.
+        """
+        if self.serial is not None and self.serial.is_open:
+            self.serial.close()
+
+    @staticmethod
+    def _clamp_uint8_257(v: int) -> int:
+        """
+        @brief Clamp an integer to [0..256].
+        """
+        return 0 if v < 0 else 256 if v > 256 else v
+
+    @staticmethod
+    def _signed_from_center(v: int) -> int:
+        """
+        @brief Convert 0..256 value to signed around 0 by subtracting 127.
+        @param v Integer in [0..256].
+        @return Approx. [-127..+129] centered at 0.
+        """
+        return int(v) - 127
+
+    @classmethod
+    def _vel_from_u256(cls, v: int) -> float:
+        """
+        @brief Convert 0..256 back to velocity in m/s using symmetric range [-VEL_MAX, +VEL_MAX].
+        """
+        t = float(v) / 256.0  # [0..1]
+        return (t * (2.0 * cls.VEL_MAX_MPS)) - cls.VEL_MAX_MPS
+
+    @staticmethod
+    def _deg_from_u256(v: int) -> float:
+        """
+        @brief Convert 0..256 back to degrees assuming mapping [-180..+180] → [0..256].
+        """
+        t = float(v) / 256.0  # [0..1]
+        return (t * 360.0) - 180.0
+
+    def _readline(self) -> Optional[str]:
+        """
+        @brief Read one line from the serial port (non-blocking up to timeout).
+        @return Decoded line as UTF-8 string, or None on timeout/empty.
+        """
+        if self.serial is None or not self.serial.is_open:
+            self.connect()
+        line = self.serial.readline()  # bytes up to '\n' (or timeout)
+        if not line:
+            return None
+        try:
+            return line.decode("utf-8", errors="ignore").strip()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _parse_packet(line: str) -> Optional[Dict[str, int]]:
+        """
+        @brief Parse a line like "{12,34,56,78,90,123}" into six integers 0..256.
+        @param line Input line (already stripped).
+        @return Dict with raw integer fields or None if invalid.
+        """
+        if not (line.startswith("{") and line.endswith("}")):
+            return None
+        body = line[1:-1].strip()
+        parts = body.split(",")
+        if len(parts) != 6:
+            return None
+        try:
+            vals = [BNO08x._clamp_uint8_257(int(p.strip())) for p in parts]
+        except ValueError:
+            return None
+
         return {
-            "length": length,
-            "channel": channel,
-            "sequence": sequence,
-            "payload": payload
+            "X_vel_u": vals[0],
+            "Y_vel_u": vals[1],
+            "Z_vel_u": vals[2],
+            "Roll_u":  vals[3],
+            "Pitch_u": vals[4],
+            "Yaw_u":   vals[5],
         }
-    except Exception as e:
-        print(f"❌ Error reading SHTP packet: {e}")
-        return None
 
-def parse_packet(packet):
-    report_id = packet["payload"][0] if packet["payload"] else None
-    report_name = KNOWN_REPORT_IDS.get(report_id, "Unknown Report")
-    channel_name = CHANNEL_NAMES.get(packet["channel"], f"Unknown({packet['channel']})")
-    print(f"📦 SHTP Packet")
-    print(f"  ├─ Channel:  {packet['channel']} ({channel_name})")
-    print(f"  ├─ Sequence: {packet['sequence']}")
-    print(f"  ├─ Length:   {packet['length']} bytes")
-    print(f"  ├─ Report:   0x{report_id:02X} ({report_name})")
-    print(f"  └─ Payload:  {packet['payload']}")
+    def get_data(self) -> Optional[Dict[str, Any]]:
+        """
+        @brief Read one packet from the serial port and return parsed JSON-friendly dict.
+        @details
+          Returns a dictionary containing:
+            - raw (0..256 ints)
+            - signed (centered around 0)
+            - vel_ms (reconstructed m/s using VEL_MAX_MPS)
+            - euler_deg (reconstructed degrees, assuming [-180..180] mapping)
+        @return Dict or None (if no valid line received within timeout).
+        """
+        line = self._readline()
+        if line is None:
+            return None
 
-def send_set_feature(feature_id, interval_us=10000):
-    print(f"🛰️ Enabling feature: 0x{feature_id:02X}")
-    payload = [
-        0xFD,               # Set Feature command
-        feature_id,         # Feature Report ID
-        0x00,               # Feature flags
-        0x00, 0x00,         # Change sensitivity
-        *interval_us.to_bytes(4, 'little'),  # Report interval
-        0x00, 0x00, 0x00, 0x00,              # Batch interval
-        0x00, 0x00, 0x00, 0x00               # Sensor-specific config
-    ]
-    send_shtp_packet(CHANNEL_CONTROL, payload)
+        pkt = self._parse_packet(line)
+        if pkt is None:
+            return None
 
-def send_shtp_packet(channel, payload):
-    global sequence_numbers
-    length = len(payload) + 4
-    header = [length & 0xFF, (length >> 8) & 0xFF, channel, sequence_numbers[channel]]
-    sequence_numbers[channel] = (sequence_numbers[channel] + 1) % 256
-    packet = header + payload
-    try:
-        msg = i2c_msg.write(I2C_ADDR, packet)
-        bus.i2c_rdwr(msg)
-        print(f"📤 Sent packet on channel {channel} with payload: {payload}")
-    except Exception as e:
-        print(f"❌ Failed to send packet: {e}")
+        # Raw 0..256
+        x_u = pkt["X_vel_u"]; y_u = pkt["Y_vel_u"]; z_u = pkt["Z_vel_u"]
+        r_u = pkt["Roll_u"];  p_u = pkt["Pitch_u"]; yv_u = pkt["Yaw_u"]
 
-def wait_for_initialization():
-    got_product_id = False
-    got_init_response = False
-    print("🕒 Waiting for Product ID + Init Response packets...")
-    while not (got_product_id and got_init_response):
-        if wait_for_H_INTN(timeout=3.0):
-            pkt = read_shtp_packet()
-            if pkt:
-                parse_packet(pkt)
-                rid = pkt["payload"][0] if pkt["payload"] else None
-                if rid == 0xF9:
-                    got_product_id = True
-                elif rid == 0xFA:
-                    got_init_response = True
-        else:
-            print("⚠️  Timeout waiting for H_INTN during boot")
+        # Signed around zero
+        x_s = self._signed_from_center(x_u)
+        y_s = self._signed_from_center(y_u)
+        z_s = self._signed_from_center(z_u)
+        r_s = self._signed_from_center(r_u)
+        p_s = self._signed_from_center(p_u)
+        yv_s = self._signed_from_center(yv_u)
 
-def main():
-    print("🟢 SHTP Initialization + Feature Enable started")
-    try:
-        wait_for_initialization()
+        # Engineering units
+        x_ms = self._vel_from_u256(x_u)
+        y_ms = self._vel_from_u256(y_u)
+        z_ms = self._vel_from_u256(z_u)
 
-        # Enable sensors
-        send_set_feature(0x05)  # Rotation Vector
-        send_set_feature(0x01)  # Accelerometer
-        send_set_feature(0x02)  # Gyroscope
+        roll_deg  = self._deg_from_u256(r_u)
+        pitch_deg = self._deg_from_u256(p_u)
+        yaw_deg   = self._deg_from_u256(yv_u)
 
-        print("📡 Initialization complete. Polling reports...")
-        while True:
-            if GPIO.input(INT_PIN) == GPIO.LOW:
-                pkt = read_shtp_packet()
-                if pkt:
-                    parse_packet(pkt)
-            else:
-                time.sleep(0.01)
-            time.sleep(0.1)  # Polling delay
-    except KeyboardInterrupt:
-        print("🛑 Interrupted by user")
-    finally:
-        GPIO.cleanup()
+        return {
+            "raw": {
+                "X_vel_u": x_u, "Y_vel_u": y_u, "Z_vel_u": z_u,
+                "Roll_u": r_u, "Pitch_u": p_u, "Yaw_u": yv_u
+            },
+            "signed": {
+                "X_vel": x_s, "Y_vel": y_s, "Z_vel": z_s,
+                "Roll": r_s, "Pitch": p_s, "Yaw": yv_s
+            },
+            "vel_ms": {
+                "X_vel": x_ms, "Y_vel": y_ms, "Z_vel": z_ms
+            },
+            "euler_deg": {
+                "Roll": roll_deg, "Pitch": pitch_deg, "Yaw": yaw_deg
+            },
+            "line": line  # optional: keep original line for debugging
+        }
 
+    def get_data_json_str(self) -> Optional[str]:
+        """
+        @brief Convenience wrapper to return the parsed packet as a JSON string.
+        @return JSON string or None if no valid packet was received.
+        """
+        data = self.get_data()
+        if data is None:
+            return None
+        return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+
+
+# Optional: quick test when run as a script
 if __name__ == "__main__":
-    main()
+    """
+    @brief Example usage: read and print one packet per line as JSON.
+    """
+    port = os.environ.get("BNO_PORT", "/dev/ttyUSB0")
+    baud = int(os.environ.get("BNO_BAUD", "115200"))
+    timeout = float(os.environ.get("BNO_TIMEOUT", "1.0"))
+
+    imu = BNO08x(port=port, baudrate=baud, timeout=timeout)
+    imu.connect()
+    try:
+        while True:
+            pkt = imu.get_data_json_str()
+            if pkt:
+                print(pkt, flush=True)
+            # If None, it was a timeout/invalid line; loop again.
+    except KeyboardInterrupt:
+        pass
+    finally:
+        imu.disconnect()

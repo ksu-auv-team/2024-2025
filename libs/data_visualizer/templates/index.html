@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>KSU AUV Data Visualizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../statics/styles.css" />
+</head>
+<body>
+  <!-- =========================
+       Top Navbar
+       ========================= -->
+  <nav class="navbar">
+    <div class="brand">KSU AUV Visualizer</div>
+    <div class="nav-links">
+      <a class="nav-link active" href="#cameras" data-target="page-cameras">Camera View</a>
+      <a class="nav-link" href="#data" data-target="page-data">Data View</a>
+      <a class="nav-link" href="#settings" data-target="page-settings">Settings</a>
+    </div>
+  </nav>
+
+  <!-- =========================
+       Camera View Page
+       ========================= -->
+  <main id="page-cameras" class="page">
+    <h2 class="section-title">Camera View</h2>
+    <section class="video-grid">
+      <!-- Left video pane -->
+      <article class="surface video-pane fade-in">
+        <div class="video-title">Camera 0</div>
+        <div class="video-frame">
+          <img id="camera-feed-0" alt="Camera 0" src="http://localhost:5001/video_0" />
+        </div>
+      </article>
+
+      <!-- Right video pane -->
+      <article class="surface video-pane fade-in">
+        <div class="video-title">Camera 1</div>
+        <div class="video-frame">
+          <img id="camera-feed-1" alt="Camera 1" src="http://localhost:5001/video_1" />
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- =========================
+       Data View Page
+       ========================= -->
+  <main id="page-data" class="page hidden">
+    <h2 class="section-title">Data View</h2>
+
+    <section class="tabs">
+      <!-- Tab List -->
+      <div class="tab-list" role="tablist" aria-label="Tables">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="tab-inputs" id="tabbtn-inputs">Inputs</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-outputs" id="tabbtn-outputs">Outputs</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-batteries" id="tabbtn-batteries">Batteries</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-imu" id="tabbtn-imu">IMU</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-internals" id="tabbtn-internals">Internals</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-externals" id="tabbtn-externals">Externals</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-sonar" id="tabbtn-sonar">Sonar</button>
+      </div>
+
+      <!-- Tab Panels -->
+      <div class="tab-panels">
+        <!-- Inputs -->
+        <div class="tab-panel active data-split surface" role="tabpanel" id="tab-inputs" aria-labelledby="tabbtn-inputs">
+          <div class="panel">
+            <header class="section-title">Inputs Table</header>
+            <div class="scroll">
+              <table class="table" id="table-inputs">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Step Index</th>
+                    <th>Direction</th>
+                    <th>Force</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- rows injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Inputs Chart</header>
+            <div class="chart" id="chart-inputs">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- Outputs -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-outputs" aria-labelledby="tabbtn-outputs">
+          <div class="panel">
+            <header class="section-title">Outputs Table</header>
+            <div class="scroll">
+              <table class="table" id="table-outputs">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Channel</th>
+                    <th>Value</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Outputs Chart</header>
+            <div class="chart" id="chart-outputs">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- Batteries -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-batteries" aria-labelledby="tabbtn-batteries">
+          <div class="panel">
+            <header class="section-title">Batteries Table</header>
+            <div class="scroll">
+              <table class="table" id="table-batteries">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Voltage</th>
+                    <th>Current</th>
+                    <th>Temp</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Batteries Chart</header>
+            <div class="chart" id="chart-batteries">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- IMU -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-imu" aria-labelledby="tabbtn-imu">
+          <div class="panel">
+            <header class="section-title">IMU Table</header>
+            <div class="scroll">
+              <table class="table" id="table-imu">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Accel</th>
+                    <th>Gyro</th>
+                    <th>Mag</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">IMU Chart</header>
+            <div class="chart" id="chart-imu">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- Internals -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-internals" aria-labelledby="tabbtn-internals">
+          <div class="panel">
+            <header class="section-title">Internals Table</header>
+            <div class="scroll">
+              <table class="table" id="table-internals">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>CPU Temp</th>
+                    <th>RAM</th>
+                    <th>Disk</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Internals Chart</header>
+            <div class="chart" id="chart-internals">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- Externals -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-externals" aria-labelledby="tabbtn-externals">
+          <div class="panel">
+            <header class="section-title">Externals Table</header>
+            <div class="scroll">
+              <table class="table" id="table-externals">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Depth</th>
+                    <th>Temp</th>
+                    <th>Salinity</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Externals Chart</header>
+            <div class="chart" id="chart-externals">Chart placeholder</div>
+          </div>
+        </div>
+
+        <!-- Sonar -->
+        <div class="tab-panel data-split surface" role="tabpanel" id="tab-sonar" aria-labelledby="tabbtn-sonar">
+          <div class="panel">
+            <header class="section-title">Sonar Table</header>
+            <div class="scroll">
+              <table class="table" id="table-sonar">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Angle</th>
+                    <th>Range</th>
+                    <th>Strength</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <header class="section-title">Sonar Chart</header>
+            <div class="chart" id="chart-sonar">Chart placeholder</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================
+       Settings Page
+       ========================= -->
+  <main id="page-settings" class="page hidden">
+    <h2 class="section-title">Settings</h2>
+
+    <section class="tabs">
+      <!-- Process Tabs -->
+      <div class="tab-list" role="tablist" aria-label="Process Settings">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="set-core" id="setbtn-core">Core</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="set-vision" id="setbtn-vision">Vision</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="set-nav" id="setbtn-nav">Navigation</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="set-sonar" id="setbtn-sonar">Sonar</button>
+      </div>
+
+      <div class="tab-panels">
+        <!-- Core Settings -->
+        <div class="tab-panel active settings-split surface" role="tabpanel" id="set-core" aria-labelledby="setbtn-core">
+          <div class="panel settings-card">
+            <header class="section-title">core.json</header>
+            <textarea class="json-editor" id="json-core" spellcheck="false">{}</textarea>
+            <div class="action-bar">
+              <button class="button danger" id="reset-core">Reset</button>
+              <button class="button primary" id="save-core">Save</button>
+            </div>
+          </div>
+          <div class="panel settings-card">
+            <header class="section-title">Notes</header>
+            <div class="scroll">
+              <p class="text">Core process configuration and global toggles.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vision Settings -->
+        <div class="tab-panel settings-split surface" role="tabpanel" id="set-vision" aria-labelledby="setbtn-vision">
+          <div class="panel settings-card">
+            <header class="section-title">vision.json</header>
+            <textarea class="json-editor" id="json-vision" spellcheck="false">{}</textarea>
+            <div class="action-bar">
+              <button class="button danger" id="reset-vision">Reset</button>
+              <button class="button primary" id="save-vision">Save</button>
+            </div>
+          </div>
+          <div class="panel settings-card">
+            <header class="section-title">Notes</header>
+            <div class="scroll">
+              <p>Camera pipelines, thresholds, and post-processing options.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Settings -->
+        <div class="tab-panel settings-split surface" role="tabpanel" id="set-nav" aria-labelledby="setbtn-nav">
+          <div class="panel settings-card">
+            <header class="section-title">navigation.json</header>
+            <textarea class="json-editor" id="json-nav" spellcheck="false">{}</textarea>
+            <div class="action-bar">
+              <button class="button danger" id="reset-nav">Reset</button>
+              <button class="button primary" id="save-nav">Save</button>
+            </div>
+          </div>
+          <div class="panel settings-card">
+            <header class="section-title">Notes</header>
+            <div class="scroll">
+              <p>Controller gains, constraints, mission planner toggles.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sonar Settings -->
+        <div class="tab-panel settings-split surface" role="tabpanel" id="set-sonar" aria-labelledby="setbtn-sonar">
+          <div class="panel settings-card">
+            <header class="section-title">sonar.json</header>
+            <textarea class="json-editor" id="json-sonar" spellcheck="false">{}</textarea>
+            <div class="action-bar">
+              <button class="button danger" id="reset-sonar">Reset</button>
+              <button class="button primary" id="save-sonar">Save</button>
+            </div>
+          </div>
+          <div class="panel settings-card">
+            <header class="section-title">Notes</header>
+            <div class="scroll">
+              <p>Ping rate, sweep ranges, filters.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================
+       Scripts
+       ========================= -->
+  <script>
+    // ---- Camera auto-refresh (cache-busting) ----
+    function updateCameraSrc(id, baseUrl) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.src = baseUrl + "?ts=" + Date.now();
+    }
+    // Cam 0: 1 Hz refresh
+    setInterval(() => updateCameraSrc("camera-feed-0", "http://localhost:5001/video_0"), 1000);
+    // Cam 1: ~3 Hz (333 ms) — adjust as needed
+    setInterval(() => updateCameraSrc("camera-feed-1", "http://localhost:5001/video_1"), 333);
+
+    // ---- Simple SPA nav handling ----
+    const pages = ["page-cameras", "page-data", "page-settings"];
+    const navLinks = document.querySelectorAll(".nav-link");
+
+    function showPage(id) {
+      pages.forEach(pid => {
+        const el = document.getElementById(pid);
+        if (!el) return;
+        el.classList.toggle("hidden", pid !== id);
+      });
+      navLinks.forEach(a => a.classList.toggle("active", a.dataset.target === id));
+    }
+
+    // Initial route
+    window.addEventListener("load", () => {
+      const hash = location.hash.replace("#", "");
+      if (hash === "data") showPage("page-data");
+      else if (hash === "settings") showPage("page-settings");
+      else showPage("page-cameras");
+    });
+
+    // Click routing
+    navLinks.forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = a.dataset.target;
+        showPage(target);
+        history.replaceState(null, "", "#" + a.getAttribute("href").replace("#", ""));
+      });
+    });
+
+    // ---- Tabs handling (both Data and Settings) ----
+    function setupTabs(container) {
+      const tabList = container.querySelector(".tab-list");
+      if (!tabList) return;
+
+      const tabs = tabList.querySelectorAll(".tab");
+      const panels = container.querySelectorAll(".tab-panel");
+
+      function activateTab(idx) {
+        tabs.forEach((t, i) => {
+          const selected = i === idx;
+          t.setAttribute("aria-selected", String(selected));
+        });
+        panels.forEach((p, i) => {
+          p.classList.toggle("active", i === idx);
+        });
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => activateTab(index));
+        tab.addEventListener("keydown", (e) => {
+          // Optional keyboard nav
+          if (e.key === "ArrowRight") activateTab((index + 1) % tabs.length);
+          if (e.key === "ArrowLeft") activateTab((index - 1 + tabs.length) % tabs.length);
+        });
+      });
+    }
+
+    // Initialize tabs on Data & Settings pages
+    setupTabs(document.getElementById("page-data"));
+    setupTabs(document.getElementById("page-settings"));
+  </script>
+</body>
+</html>

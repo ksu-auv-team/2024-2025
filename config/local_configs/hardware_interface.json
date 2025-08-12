@@ -8,5 +8,8 @@
     "Arm_Controller_Address": "0x50",
     "Power_Safety_Address": "0x51",
     "DB_Address": "localhost",
-    "DB_Port": 5000
+    "DB_Port": 5000,
+    "BNO08x_Port": "/dev/ttyUSB0",
+    "BNO08x_Baudrate": 115200,
+    "BNO08x_Timeout": 1.0
 }
