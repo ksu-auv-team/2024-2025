@@ -3,7 +3,7 @@ import os
 
 def load_config(app_name : str) -> dict:
     project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    project_config_path = os.path.join(project_path, "config/local_configs", f"{app_name}.json")
+    project_config_path = os.path.join(project_path, "config/local_configs/hardware_interface.json")
     global_config_path = os.path.join(project_path, "config/global_config.json")
     if not os.path.exists(project_config_path):
         raise FileNotFoundError(f"Configuration file {project_config_path} does not exist.")
