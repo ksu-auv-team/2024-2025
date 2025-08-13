@@ -40,24 +40,28 @@ def main():
 
     virtualized_controlled_processes = [
         ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.data_visualizer.run"],
 
     ]
 
     trainer_processes = [
         ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.data_visualizer.run"],
 
     ]
 
     real_world_controlled_processes = [
         ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.data_visualizer.run"],
         ["python", "-m", "libs.hardware_interface.run"],
 
     ]
 
     real_world_processes = [
         ["python", "-m", "libs.db_manager.run"],
-        # ["python", "-m", "libs.hardware_interface.run"],
-
+        ["python", "-m", "libs.data_visualizer.run"],
+        ["python", "-m", "libs.hardware_interface.run"],
+        
     ]
 
     processes = []
