@@ -8,7 +8,7 @@
     "Torpedo_Address": "0x4f",
     "Arm_Controller_Address": "0x50",
     "Power_Safety_Address": "0x51",
-    "DB_Address": "localhost",
+    "DB_Address": "http://localhost",
     "DB_Port": 5000,
     "BNO08x_Port": "/dev/ttyUSB0",
     "BNO08x_Baudrate": 115200,
