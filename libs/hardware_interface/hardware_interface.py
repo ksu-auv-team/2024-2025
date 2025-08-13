@@ -98,9 +98,9 @@ class HardwareInterface:
         for address in addresses:
             try:
                 self.bus.read_byte(address)
-                logging.info("Device found at address: %s", hex(address))
+                logging.info("Device found at address: %s", address)
             except OSError as e:
-                logging.error("No device found at address: %s, Error: %s", hex(address), str(e))
+                logging.error("No device found at address: %s, Error: %s", address, str(e))
 
     def run(self):
         self.check_hardware_addresses()
