@@ -38,16 +38,42 @@ def main():
     main_log.info("Starting main application...")
     main_log.info(f"Args: {args}")
 
-    # Define subprocess commands
-    processes_to_start = [
+    virtualized_controlled_processes = [
         ["python", "-m", "libs.db_manager.run"],
-        # Add more subprocess commands here
+
+    ]
+
+    trainer_processes = [
+        ["python", "-m", "libs.db_manager.run"],
+
+    ]
+
+    real_world_controlled_processes = [
+        ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.hardware_interface.run"],
+
+    ]
+
+    real_world_processes = [
+        ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.hardware_interface.run"],
+
     ]
 
     processes = []
     threads = []
+    subprocs = []
 
-    for cmd in processes_to_start:
+    if args.virtualized_controlled:
+        processes = virtualized_controlled_processes
+    elif args.trainer:
+        processes = trainer_processes
+    elif args.real_world_controlled:
+        processes = real_world_controlled_processes
+    elif args.real_world:
+        processes = real_world_processes
+
+    for cmd in processes:
         proc_name = cmd[-1].split('.')[-1]  # e.g., 'run' from 'libs.db_manager.run'
         proc_logger = logger.create_logger(proc_name, args.print_debug)
 
@@ -59,7 +85,7 @@ def main():
             text=True,
             bufsize=1
         )
-        processes.append(proc)
+        subprocs.append(proc)
 
         # Thread for stdout
         t_out = threading.Thread(target=stream_output, args=(proc, proc_logger, "stdout"))
@@ -72,24 +98,25 @@ def main():
         t_err.daemon = True
         t_err.start()
         threads.append(t_err)
-
+    
     def terminate_processes():
         main_log.info("Terminating subprocesses...")
-        for proc in processes:
+        for proc in subprocs:
             proc.terminate()
-        for proc in processes:
+        for proc in subprocs:
             try:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
 
     try:
-        for proc in processes:
+        for proc in subprocs:
             proc.wait()
     except KeyboardInterrupt:
         main_log.info("KeyboardInterrupt received. Shutting down...")
         terminate_processes()
     finally:
+        terminate_processes()
         terminate_processes()
 
 if __name__ == "__main__":
