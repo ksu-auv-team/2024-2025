@@ -134,6 +134,12 @@ class HardwareInterface:
                 except Exception as e:
                     logging.warning("Bad address for %s: %r (%s)", k, self.config[k], e)
         return addrs
+    
+    def _sendI2CPacket(self, data : list, address : str) -> None:
+        try:
+            self.bus.write_i2c_block_data(address, 0, data)
+        except Exception as e:
+            logging.error("Failed to send I2C packet to %s: %s", address, e)
 
     # ------------------------------- I2C probing -------------------------------
 
@@ -238,7 +244,9 @@ class HardwareInterface:
         @brief Sends motor control data to the motor controller.
         """
         try:
-            sendDataToServer(self.input_data, self.config['Motor_Controller_URL'])
+            # Prepare data for sending
+            data = [value for key, value in self.input_data.items() if key.startswith("M")]
+            self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
             logging.debug("Motor control data sent: %s", self.input_data)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
