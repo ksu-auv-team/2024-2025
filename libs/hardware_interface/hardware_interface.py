@@ -250,7 +250,8 @@ class HardwareInterface:
             self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
             logging.debug("Motor control data sent: %s", self.input_data)
         except Exception as e:
-            logging.error("Failed to send motor control data: %s", str(e))
+            # logging.error("Failed to send motor control data: %s", str(e))
+            pass
 
     # ------------------------------- Processes -------------------------------
 
@@ -273,7 +274,8 @@ class HardwareInterface:
         while True:
             try:
                 self._SerialIMU()
-                sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/imu')
+                # sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/imu')
+                logging.info("IMU data sent to DB: %s", self.sensor_data['IMU_Data'])
             except Exception as e:
                 logging.error("SensorProcess error: %s", e)
             time.sleep(0.01)  # ~100 Hz-ish
