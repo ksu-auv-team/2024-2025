@@ -138,3 +138,7 @@ class HardwareInterface:
     # TODO
     def _I2CIMU(self):
         pass
+
+def run():
+    hardware_interface = HardwareInterface()
+    hardware_interface.run()
