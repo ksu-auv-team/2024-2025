@@ -251,7 +251,7 @@ class HardwareInterface:
         """
         while True:
             try:
-                self.input_data = getDataFromServer(self.config['DB_Address'] + '/inputs')
+                self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/inputs')
                 self._MotorController()
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
@@ -264,7 +264,7 @@ class HardwareInterface:
         while True:
             try:
                 self._SerialIMU()
-                sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + '/imu')
+                sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/imu')
             except Exception as e:
                 logging.error("SensorProcess error: %s", e)
             time.sleep(0.01)  # ~100 Hz-ish
