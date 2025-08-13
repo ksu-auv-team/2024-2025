@@ -75,13 +75,13 @@ class HardwareInterface:
 
     def ControlProcess(self):
         while True:
-            self.input_data = getDataFromServer(self.config['Database_URL'] + '/inputs')
+            self.input_data = getDataFromServer(self.config['DB_Address'] + '/inputs')
             self._MotorController()
 
     def SensorProcess(self):
         while True:
             self._SerialIMU()
-            sendDataToServer(self.sensor_data['IMU_Data'], self.config['Database_URL'] + '/imu')
+            sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + '/imu')
 
     def check_hardware_addresses(self):
         addresses = [
