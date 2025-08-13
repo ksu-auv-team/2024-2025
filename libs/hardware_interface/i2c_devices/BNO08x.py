@@ -38,7 +38,7 @@ class BNO08x:
     # Must match the scale used on the microcontroller (Arduino sketch).
     VEL_MAX_MPS: float = 2.0  # [-VEL_MAX, +VEL_MAX] ↔ [0..256]
 
-    def __init__(self, port: str = "/dev/ttyUSB0", baudrate: int = 115200, timeout: float = 1.0):
+    def __init__(self, port: str = "/dev/ttyACM0", baudrate: int = 115200, timeout: float = 1.0):
         """
         @brief Constructor initializes (but does not necessarily open) the serial port.
         @param port Serial device path (e.g., '/dev/ttyACM0', '/dev/ttyUSB0', 'COM3').
@@ -109,7 +109,7 @@ class BNO08x:
         """
         if self.serial is None or not self.serial.is_open:
             self.connect()
-        line = self.serial.readline()  # bytes up to '\n' (or timeout)
+        line = self.serial.readline()  # type: ignore # bytes up to '\n' (or timeout)
         if not line:
             return None
         try:
@@ -210,7 +210,8 @@ class BNO08x:
         data = self.get_data()
         if data is None:
             return None
-        return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+        else:
+            return json.dumps(data)
 
 
 # Optional: quick test when run as a script
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     """
     @brief Example usage: read and print one packet per line as JSON.
     """
-    port = os.environ.get("BNO_PORT", "/dev/ttyUSB0")
+    port = os.environ.get("BNO_PORT", "/dev/ttyACM0")
     baud = int(os.environ.get("BNO_BAUD", "115200"))
     timeout = float(os.environ.get("BNO_TIMEOUT", "1.0"))
 
@@ -230,6 +231,8 @@ if __name__ == "__main__":
             if pkt:
                 print(pkt, flush=True)
             # If None, it was a timeout/invalid line; loop again.
+            else:
+                print("No valid packet received", flush=True)
     except KeyboardInterrupt:
         pass
     finally:
