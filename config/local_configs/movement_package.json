@@ -1,4 +1,6 @@
 {
-    "DB_Address": "localhost",
-    "DB_Port": 5000
+    "DB_Address": "127.0.0.1",
+    "DB_Port": 5000,
+    "MaxMotorSpeed": 255,
+    "MinMotorSpeed": 0
 }
