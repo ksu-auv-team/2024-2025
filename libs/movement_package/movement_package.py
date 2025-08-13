@@ -123,7 +123,7 @@ class MovementPackage:
     def run(self):
         while True:
             self.logger.info("Fetching latest IMU data...")
-            data = get_latest_data(self.config['DB_Address'] + ":" + self.config['DB_Port'] + "/imu/latest")
+            data = get_latest_data(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + "/imu/latest")
             if data:
                 self.logger.info(f"Latest IMU data: {data}")
                 self.logger.info("Parsing inputs...")
