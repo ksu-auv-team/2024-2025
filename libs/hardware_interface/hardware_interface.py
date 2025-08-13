@@ -93,3 +93,9 @@ class HardwareInterface:
             except OSError as e:
                 logging.error("No device found at address: %s, Error: %s", hex(address), str(e))
 
+    def run(self):
+        while True:
+            self.ControlProcess()
+            self.SensorProcess()
+            time.sleep(0.1)
+

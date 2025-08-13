@@ -10,6 +10,13 @@ def sendDataToServer(data: dict, url: str) -> None:
     Splits the data by 
 
     """
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()  # Raise an error for bad responses
+    except requests.RequestException as e:
+        raise requests.RequestException(f"HTTP request failed: {e}")
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Error decoding JSON from response: {e}")
 
 def getDataFromServer(url):
     """
