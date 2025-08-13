@@ -56,7 +56,7 @@ def main():
 
     real_world_processes = [
         ["python", "-m", "libs.db_manager.run"],
-        ["python", "-m", "libs.hardware_interface.run"],
+        # ["python", "-m", "libs.hardware_interface.run"],
 
     ]
 
