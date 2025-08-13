@@ -4,6 +4,7 @@ import subprocess
 import argparse
 import os
 import threading
+import time
 
 def stream_output(proc, log_obj: logger.Logger, stream_name: str):
     """
@@ -61,7 +62,7 @@ def main():
         ["python", "-m", "libs.db_manager.run"],
         ["python", "-m", "libs.data_visualizer.run"],
         ["python", "-m", "libs.hardware_interface.run"],
-        
+
     ]
 
     processes = []
@@ -102,6 +103,8 @@ def main():
         t_err.daemon = True
         t_err.start()
         threads.append(t_err)
+
+        time.sleep(5)
     
     def terminate_processes():
         main_log.info("Terminating subprocesses...")
