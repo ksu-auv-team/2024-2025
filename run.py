@@ -79,7 +79,7 @@ def main():
         processes = real_world_processes
 
     for cmd in processes:
-        proc_name = cmd[-1].split('.')[-1]  # e.g., 'run' from 'libs.db_manager.run'
+        proc_name = cmd[-1].split('.')[-2]  # e.g., 'db_manager' from 'libs.db_manager.run'
         proc_logger = logger.create_logger(proc_name, args.print_debug)
 
         # Start subprocess with stdout/stderr piped
