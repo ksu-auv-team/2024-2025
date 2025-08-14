@@ -100,7 +100,7 @@ class HardwareInterface:
         }
 
         # Serial IMU (Pico running Arduino sketch)
-        self.bno08x = BNO08x(
+        self.bno08x = BNO08xSerial(
             port=self.config['BNO08x_Port'],
             baudrate=self.config['BNO08x_Baudrate'],
             timeout=self.config.get('BNO08x_Timeout', 1.0)
