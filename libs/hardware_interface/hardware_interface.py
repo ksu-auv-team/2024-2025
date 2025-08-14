@@ -290,7 +290,7 @@ class HardwareInterface:
         """
         while True:
             try:
-                temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
+                temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/latest')
                 data = splitData(temp)
                 self._MotorController(data[0])
                 self._TorpController(data[1])
