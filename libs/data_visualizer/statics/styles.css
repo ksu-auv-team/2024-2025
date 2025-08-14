@@ -257,10 +257,20 @@ button, [role="tab"] {
 }
 
 /* Scroll areas to avoid page overflow */
+/* Put this in statics/styles.css */
 .scroll {
-  overflow: auto;
-  min-height: 0;
-  border-radius: calc(var(--radius) - 6px);
+  max-height: 40vh;       /* adjust: 30vh/50vh or a fixed 400px */
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 8px;
+}
+
+/* Optional: sticky table header for nicer scrolling */
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface, #111); /* match your theme */
+  z-index: 1;
 }
 
 /* Table styling */
