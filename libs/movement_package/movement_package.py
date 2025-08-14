@@ -14,10 +14,14 @@ class MovementPackage:
         self.logger = logging.getLogger(package_name)
 
         self.parsed_inputs = {
+            "id": 0,
+            "step_index": 0,
+            "direction": "",
+            "force": 0,
             "X": 0,
             "Y": 0,
             "Z": 0,
-            "Y": 0,
+            "Yaw": 0,
             "S1": 0,
             "S2": 0,
             "S3": 0,
@@ -57,8 +61,11 @@ class MovementPackage:
         # arm = db.Column(db.Boolean, nullable=False)
 
         if input_data['arm']:
-            dir = input_data['direction']
-            match dir:
+            self.parsed_inputs['id'] = input_data['id']
+            self.parsed_inputs['step_index'] = input_data['step_index']
+            self.parsed_inputs['direction'] = input_data['direction']
+            self.parsed_inputs['force'] = input_data['force']
+            match self.parsed_inputs['direction']:
                 case "up":
                     self.logger.info("Moving up.")
                     self.parsed_inputs['Z'] = input_data['force']
@@ -102,7 +109,45 @@ class MovementPackage:
         if data:
             self.logger.info(f"Latest IMU data: {data}")
             self.PID.update_motors(**data)
-        return {"data": [self.parsed_inputs, self.PID.horizontal_motors, self.PID.vertical_motors, self.PID.servos]}
+            output = {
+                "id": self.parsed_inputs["id"],
+                "step_index": self.parsed_inputs["step_index"],
+                "direction": self.parsed_inputs["direction"],
+                "force": self.parsed_inputs["force"],
+                "M1": int(self.PID.horizontal_motors[0]) if len(self.PID.horizontal_motors) > 0 else 0,
+                "M2": int(self.PID.horizontal_motors[1]) if len(self.PID.horizontal_motors) > 1 else 0,
+                "M3": int(self.PID.horizontal_motors[2]) if len(self.PID.horizontal_motors) > 2 else 0,
+                "M4": int(self.PID.horizontal_motors[3]) if len(self.PID.horizontal_motors) > 3 else 0,
+                "M5": int(self.PID.vertical_motors[0]) if len(self.PID.vertical_motors) > 0 else 0,
+                "M6": int(self.PID.vertical_motors[1]) if len(self.PID.vertical_motors) > 1 else 0,
+                "M7": int(self.PID.vertical_motors[2]) if len(self.PID.vertical_motors) > 2 else 0,
+                "M8": int(self.PID.vertical_motors[3]) if len(self.PID.vertical_motors) > 3 else 0,
+                "S1": int(self.PID.servos[0]) if len(self.PID.servos) > 0 else 0,
+                "S2": int(self.PID.servos[1]) if len(self.PID.servos) > 1 else 0,
+                "S3": int(self.PID.servos[2]) if len(self.PID.servos) > 2 else 0,
+                "Arm": self.parsed_inputs["Arm"]
+            }
+            return output
+        else:
+            output = {
+                "id": 0,
+                "step_index": 0,
+                "direction": "",
+                "force": 0,
+                "M1": 0,
+                "M2": 0,
+                "M3": 0,
+                "M4": 0,
+                "M5": 0,
+                "M6": 0,
+                "M7": 0,
+                "M8": 0,
+                "S1": 0,
+                "S2": 0,
+                "S3": 0,
+                "Arm": 0
+            }
+            return output
     
     def _updateDB(self, data : dict):
         """

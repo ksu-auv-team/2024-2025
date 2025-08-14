@@ -28,7 +28,7 @@ from smbus2 import i2c_msg
 
 from .config_loader import load_config
 from .logic import sendDataToServer, getDataFromServer
-from .i2c_devices.BNO08x import BNO08x
+from .i2c_devices.BNO08x import BNO08xI2C, BNO08xSerial
 
 
 def _to_addr(v) -> int:
@@ -137,7 +137,8 @@ class HardwareInterface:
     
     def _sendI2CPacket(self, data : list, address : str) -> None:
         try:
-            self.bus.write_i2c_block_data(address, 0, data)
+            addr_int = _to_addr(address)
+            self.bus.write_i2c_block_data(addr_int, 0, data)
         except Exception as e:
             logging.error("Failed to send I2C packet to %s: %s", address, e)
 
@@ -155,7 +156,7 @@ class HardwareInterface:
                 logging.info("Skipping probe for write-only/RX-only device at %s", hex(addr))
                 continue
 
-            ok, err = _probe_i2c_rdwr(self.bus, addr, read_len=1)
+            ok, err = _probe_i2c_rdwr(self.bus, _to_addr(addr), read_len=1)
             if ok:
                 logging.info("Device responded at address: %s", hex(addr))
             else:

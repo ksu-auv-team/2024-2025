@@ -27,7 +27,7 @@ import serial
 from typing import Optional, Dict, Any
 
 
-class BNO08x:
+class BNO08xSerial:
     """
     @brief Serial interface helper for BNO08x data from a microcontroller.
     @details
@@ -131,7 +131,7 @@ class BNO08x:
         if len(parts) != 6:
             return None
         try:
-            vals = [BNO08x._clamp_uint8_257(int(p.strip())) for p in parts]
+            vals = [BNO08xSerial._clamp_uint8_257(int(p.strip())) for p in parts]
         except ValueError:
             return None
 
@@ -214,26 +214,6 @@ class BNO08x:
             return json.dumps(data)
 
 
-# Optional: quick test when run as a script
-if __name__ == "__main__":
-    """
-    @brief Example usage: read and print one packet per line as JSON.
-    """
-    port = os.environ.get("BNO_PORT", "/dev/ttyACM0")
-    baud = int(os.environ.get("BNO_BAUD", "115200"))
-    timeout = float(os.environ.get("BNO_TIMEOUT", "1.0"))
-
-    imu = BNO08x(port=port, baudrate=baud, timeout=timeout)
-    imu.connect()
-    try:
-        while True:
-            pkt = imu.get_data_json_str()
-            if pkt:
-                print(pkt, flush=True)
-            # If None, it was a timeout/invalid line; loop again.
-            else:
-                print("No valid packet received", flush=True)
-    except KeyboardInterrupt:
+class BNO08xI2C:
+    def __init__(self, bus, address: int = 0x4B):
         pass
-    finally:
-        imu.disconnect()

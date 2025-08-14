@@ -96,16 +96,98 @@
             <header class="section-title">Outputs Table</header>
             <div class="scroll">
               <table class="table" id="table-outputs">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Channel</th>
-                    <th>Value</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Step Index</th>
+              <th>Direction</th>
+              <th>Force</th>
+              <th>M1</th>
+              <th>M2</th>
+              <th>M3</th>
+              <th>M4</th>
+              <th>M5</th>
+              <th>M6</th>
+              <th>M7</th>
+              <th>M8</th>
+              <th>S1</th>
+              <th>S2</th>
+              <th>S3</th>
+              <th>Arm</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
               </table>
+            </div>
+            <!-- Input Panel -->
+            <div class="input-panel surface" style="margin-top:1em; padding:1em;">
+              <header class="section-title">Set Outputs</header>
+              <form id="outputs-form">
+            <!-- Motors M1-M8: 1000-2000, default 1500 -->
+            <div class="slider-group">
+            <label for="m1">M1</label>
+            <input type="range" id="m1" name="m1" min="1000" max="2000" value="1500" />
+            <input type="number" id="m1-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m2">M2</label>
+            <input type="range" id="m2" name="m2" min="1000" max="2000" value="1500" />
+            <input type="number" id="m2-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m3">M3</label>
+            <input type="range" id="m3" name="m3" min="1000" max="2000" value="1500" />
+            <input type="number" id="m3-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m4">M4</label>
+            <input type="range" id="m4" name="m4" min="1000" max="2000" value="1500" />
+            <input type="number" id="m4-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m5">M5</label>
+            <input type="range" id="m5" name="m5" min="1000" max="2000" value="1500" />
+            <input type="number" id="m5-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m6">M6</label>
+            <input type="range" id="m6" name="m6" min="1000" max="2000" value="1500" />
+            <input type="number" id="m6-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m7">M7</label>
+            <input type="range" id="m7" name="m7" min="1000" max="2000" value="1500" />
+            <input type="number" id="m7-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <div class="slider-group">
+            <label for="m8">M8</label>
+            <input type="range" id="m8" name="m8" min="1000" max="2000" value="1500" />
+            <input type="number" id="m8-input" min="1000" max="2000" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <!-- Servo S1: 1300-1700, default 1500 -->
+            <div class="slider-group" style="display: flex; align-items: center;">
+              <label for="s1" style="min-width: 27px; margin-right: 1px;">S1</label>
+              <input type="range" id="s1" name="s1" min="1300" max="1700" value="1500" />
+              <input type="number" id="s1-input" min="1300" max="1700" value="1500" style="width:60px; margin-left:8px;" />
+            </div>
+            <!-- Servo S2: Toggle button -->
+            <div class="slider-group">
+            <label for="s2">S2</label>
+            <button type="button" id="s2-toggle" class="button">Fire</button>
+            </div>
+            <!-- Servo S3: Toggle button -->
+            <div class="slider-group">
+            <label for="s3">S3</label>
+            <button type="button" id="s3-toggle" class="button">Fire</button>
+            </div>
+          <div class="slider-group">
+            <label for="arm">Arm</label>
+            <button type="button" id="arm-toggle" class="button">Off</button>
+          </div>
+          <div style="margin-top:1em;">
+            <button type="submit" class="button primary">Send to Database</button>
+          </div>
+              </form>
             </div>
           </div>
           <div class="panel">
@@ -113,6 +195,73 @@
             <div class="chart" id="chart-outputs">Chart placeholder</div>
           </div>
         </div>
+        <script>
+          // Slider and input sync
+          [
+            "direction","force","m1","m2","m3","m4","m5","m6","m7","m8","s1","s2","s3"
+          ].forEach(function(id){
+            const slider = document.getElementById(id);
+            const input = document.getElementById(id + "-input");
+            if(slider && input){
+              // Slider changes input
+              slider.addEventListener("input",function(){
+          input.value = slider.value;
+              });
+              // Input changes slider
+              input.addEventListener("input",function(){
+          slider.value = input.value;
+              });
+            }
+          });
+          // Arm toggle button
+          const armToggle = document.getElementById("arm-toggle");
+          let armState = false;
+          armToggle.addEventListener("click",function(){
+            armState = !armState;
+            armToggle.textContent = armState ? "On" : "Off";
+            armToggle.classList.toggle("primary", armState);
+          });
+
+          // S2 toggle button
+          const s2Toggle = document.getElementById("s2-toggle");
+          let s2State = false;
+          s2Toggle.addEventListener("click", function() {
+            s2State = !s2State;
+            s2Toggle.textContent = s2State ? "Fired" : "Fire";
+            s2Toggle.classList.toggle("primary", s2State);
+          });
+
+          // S3 toggle button
+          const s3Toggle = document.getElementById("s3-toggle");
+          let s3State = false;
+          s3Toggle.addEventListener("click", function() {
+            s3State = !s3State;
+            s3Toggle.textContent = s3State ? "Fired" : "Fire";
+            s3Toggle.classList.toggle("primary", s3State);
+          });
+          // Form submit handler (replace with actual DB logic)
+          document.getElementById("outputs-form").addEventListener("submit",function(e){
+            e.preventDefault();
+            const data = {
+              direction: Number(document.getElementById("direction").value),
+              force: Number(document.getElementById("force").value),
+              m1: Number(document.getElementById("m1").value),
+              m2: Number(document.getElementById("m2").value),
+              m3: Number(document.getElementById("m3").value),
+              m4: Number(document.getElementById("m4").value),
+              m5: Number(document.getElementById("m5").value),
+              m6: Number(document.getElementById("m6").value),
+              m7: Number(document.getElementById("m7").value),
+              m8: Number(document.getElementById("m8").value),
+              s1: Number(document.getElementById("s1").value),
+              s2: Number(document.getElementById("s2").value),
+              s3: Number(document.getElementById("s3").value),
+              arm: armState
+            };
+            // TODO: Send 'data' to database via AJAX/fetch
+            alert("Data to send:\n" + JSON.stringify(data, null, 2));
+          });
+        </script>
 
         <!-- Batteries -->
         <div class="tab-panel data-split surface" role="tabpanel" id="tab-batteries" aria-labelledby="tabbtn-batteries">
