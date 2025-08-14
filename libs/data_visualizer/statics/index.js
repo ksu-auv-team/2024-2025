@@ -280,20 +280,20 @@ setupTabs(document.getElementById("page-settings"));
    ========== */
 function inputsRow(row) {
   return `<td>${row.id ?? ""}</td>
-    <td>${row.step_index ?? ""}</td>
-    <td>${row.direction ?? ""}</td>
-    <td>${row.force ?? ""}</td>
-    <td>${row.s1 ?? ""}</td>
-    <td>${row.s2 ?? ""}</td>
-    <td>${row.s3 ?? ""}</td>
-    <td>${row.arm ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
+    <td>${row.step_index ?? row.stepIndex ?? ""}</td>
+    <td>${row.direction ?? row.dir ?? ""}</td>
+    <td>${row.force ?? row.throttle ?? ""}</td>
+    <td>${row.s1 ?? row.S1 ?? ""}</td>
+    <td>${row.s2 ?? row.S2 ?? ""}</td>
+    <td>${row.s3 ?? row.S3 ?? ""}</td>
+    <td>${(row.arm ?? "")}</td>
+    <td>${row.timestamp ?? row.created_at ?? row.createdAt ?? ""}</td>`;
 }
 
 function outputsRow(row) {
   return `<td>${row.id ?? ""}</td>
-    <td>${row.step_index ?? ""}</td>
-    <td>${row.direction ?? ""}</td>
+    <td>${row.step_index ?? row.stepIndex ?? ""}</td>
+    <td>${row.direction ?? row.dir ?? ""}</td>
     <td>${row.force ?? ""}</td>
     <td>${row.M1 ?? row.m1 ?? ""}</td>
     <td>${row.M2 ?? row.m2 ?? ""}</td>
@@ -309,22 +309,23 @@ function outputsRow(row) {
     <td>${row.arm ?? ""}</td>`;
 }
 
+function imuRow(row) {
+  return `<td>${row.id ?? ""}</td>
+    <td>${row.X ?? row.x ?? ""}</td>
+    <td>${row.Y ?? row.y ?? ""}</td>
+    <td>${row.Z ?? row.z ?? ""}</td>
+    <td>${row.roll ?? ""}</td>
+    <td>${row.pitch ?? ""}</td>
+    <td>${row.yaw ?? ""}</td>
+    <td>${row.timestamp ?? row.created_at ?? row.createdAt ?? ""}</td>`;
+}
+
+
 function batteriesRow(row) {
   return `<td>${row.id ?? ""}</td>
     <td>${row.voltage ?? row.voltage1 ?? ""}</td>
     <td>${row.current ?? row.current1 ?? ""}</td>
     <td>${row.temp ?? row.temperature1 ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
-function imuRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.X ?? ""}</td>
-    <td>${row.Y ?? ""}</td>
-    <td>${row.Z ?? ""}</td>
-    <td>${row.roll ?? ""}</td>
-    <td>${row.pitch ?? ""}</td>
-    <td>${row.yaw ?? ""}</td>
     <td>${row.timestamp ?? ""}</td>`;
 }
 
