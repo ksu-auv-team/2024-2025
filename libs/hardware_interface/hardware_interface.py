@@ -253,7 +253,7 @@ class HardwareInterface:
             self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
             logging.debug("Motor control data sent: %s", self.input_data)
         except Exception as e:
-            # logging.error("Failed to send motor control data: %s", str(e))
+            logging.error("Failed to send motor control data: %s", str(e))
             pass
 
     def _TorpController(self):
@@ -267,7 +267,7 @@ class HardwareInterface:
             self._sendI2CPacket(data, self.config['Torpedo_Controller_Address'])
             logging.debug("Torpedo control data sent: %s", self.input_data)
         except Exception as e:
-            # logging.error("Failed to send torpedo control data: %s", str(e))
+            logging.error("Failed to send torpedo control data: %s", str(e))
             pass
 
     def _ArmServoController(self):
@@ -281,7 +281,7 @@ class HardwareInterface:
             self._sendI2CPacket(data, self.config['Arm_Controller_Address'])
             logging.debug("Arm control data sent: %s", self.input_data)
         except Exception as e:
-            # logging.error("Failed to send arm control data: %s", str(e))
+            logging.error("Failed to send arm control data: %s", str(e))
             pass
 
     # ------------------------------- Processes -------------------------------
