@@ -57,6 +57,8 @@ function fetchAndUpdateTable(url, tableId, rowBuilder) {
         return;
       }
       const rows = normalizeToArray(data);
+      // after: const rows = normalizeToArray(data);
+      rows.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
       tbody.innerHTML = rows.map(r => `<tr>${rowBuilder(r)}</tr>`).join("");
       console.log(`[Table] ${tableId}: rendered ${rows.length} rows`);
     })
