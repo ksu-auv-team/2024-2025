@@ -1,3 +1,7 @@
+/* ============================================
+   KSU AUV Data Visualizer – Client Script
+   ============================================ */
+
 /* ==========
    Config
    ========== */
@@ -5,8 +9,10 @@ const BASE_API = "http://192.168.8.109:5000"; // Flask server
 const CAM0 = "http://localhost:5001/video_0";
 const CAM1 = "http://localhost:5001/video_1";
 
+console.log("[AUV UI] app.js loaded");
+
 /* ==========
-   Utils
+   Helpers
    ========== */
 function $(sel) { return document.querySelector(sel); }
 function $all(sel) { return document.querySelectorAll(sel); }
@@ -30,8 +36,7 @@ function normalizeToArray(payload) {
   if (Array.isArray(payload.items)) return payload.items;
   if (Array.isArray(payload.results)) return payload.results;
   if (Array.isArray(payload.rows)) return payload.rows;
-  // If it looks like a single row (has step_index or id etc.), wrap it
-  const maybeRowKeys = ["id","step_index","direction","force","X","Y","Z","roll","pitch","yaw"];
+  const maybeRowKeys = ["id","step_index","direction","force","X","Y","Z","roll","pitch","yaw","M1","S1"];
   const isLikelyRow = Object.keys(payload).some(k => maybeRowKeys.includes(k));
   return isLikelyRow ? [payload] : [];
 }
@@ -43,24 +48,22 @@ function fetchAndUpdateTable(url, tableId, rowBuilder) {
         const txt = await res.text().catch(() => "");
         throw new Error(`GET ${url} -> ${res.status} ${res.statusText} ${txt}`);
       }
-      return res.json().catch(() => {
-        throw new Error(`GET ${url} returned non-JSON payload`);
-      });
+      return res.json().catch(() => { throw new Error(`GET ${url} returned non-JSON`); });
     })
     .then((data) => {
       const tbody = document.querySelector(`#${tableId} tbody`);
       if (!tbody) {
-        console.warn(`Table body not found: #${tableId} tbody`);
+        console.warn(`[Table] Missing tbody for #${tableId}`);
         return;
       }
       const rows = normalizeToArray(data);
       tbody.innerHTML = rows.map(r => `<tr>${rowBuilder(r)}</tr>`).join("");
+      console.log(`[Table] ${tableId}: rendered ${rows.length} rows`);
     })
     .catch((err) => {
       console.error(`[TableUpdate] ${tableId}:`, err);
     });
 }
-
 
 /* ==========
    Camera refresh (cache-busting)
@@ -124,7 +127,7 @@ function setupTabs(container) {
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => activateTab(index));
     tab.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight") activateTab((index + 1) + 0 % tabs.length);
+      if (e.key === "ArrowRight") activateTab((index + 1) % tabs.length);
       if (e.key === "ArrowLeft") activateTab((index - 1 + tabs.length) % tabs.length);
     });
   });
@@ -148,7 +151,6 @@ setupTabs(document.getElementById("page-settings"));
   });
 
   // direction dropdown constraints
-  const directions = ["forward","backward","left","right","up","down","yaw_right","yaw_left"];
   const opposites = {forward:"backward", backward:"forward", left:"right", right:"left", up:"down", down:"up", yaw_right:"yaw_left", yaw_left:"yaw_right"};
   const dir1 = document.getElementById("direction1");
   const dir2 = document.getElementById("direction2");
@@ -174,6 +176,8 @@ setupTabs(document.getElementById("page-settings"));
 
   let stepIndex = 1; // simple increment
   const form = document.getElementById("inputs-form");
+  if (!form) return;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const direction = dir1.value || dir2.value;
@@ -207,8 +211,8 @@ setupTabs(document.getElementById("page-settings"));
    Outputs form
    ========== */
 (function initOutputsForm() {
-  // slider <-> number sync for motors and s1
-  ["m1","m2","m3","m4","m5","m6","m7","m8","s1"].forEach((id) => {
+  const ids = ["m1","m2","m3","m4","m5","m6","m7","m8","s1"];
+  ids.forEach((id) => {
     const slider = document.getElementById(id);
     const input = document.getElementById(`${id}-input`);
     if (slider && input) {
@@ -220,30 +224,38 @@ setupTabs(document.getElementById("page-settings"));
   // toggles
   const armToggle = document.getElementById("arm-toggle");
   let armState = false;
-  armToggle.addEventListener("click", function () {
-    armState = !armState;
-    armToggle.textContent = armState ? "On" : "Off";
-    armToggle.classList.toggle("primary", armState);
-  });
+  if (armToggle) {
+    armToggle.addEventListener("click", function () {
+      armState = !armState;
+      armToggle.textContent = armState ? "On" : "Off";
+      armToggle.classList.toggle("primary", armState);
+    });
+  }
 
   const s2Toggle = document.getElementById("s2-toggle");
   let s2State = false;
-  s2Toggle.addEventListener("click", function () {
-    s2State = !s2State;
-    s2Toggle.textContent = s2State ? "Fired" : "Fire";
-    s2Toggle.classList.toggle("primary", s2State);
-  });
+  if (s2Toggle) {
+    s2Toggle.addEventListener("click", function () {
+      s2State = !s2State;
+      s2Toggle.textContent = s2State ? "Fired" : "Fire";
+      s2Toggle.classList.toggle("primary", s2State);
+    });
+  }
 
   const s3Toggle = document.getElementById("s3-toggle");
   let s3State = false;
-  s3Toggle.addEventListener("click", function () {
-    s3State = !s3State;
-    s3Toggle.textContent = s3State ? "Fired" : "Fire";
-    s3Toggle.classList.toggle("primary", s3State);
-  });
+  if (s3Toggle) {
+    s3Toggle.addEventListener("click", function () {
+      s3State = !s3State;
+      s3Toggle.textContent = s3State ? "Fired" : "Fire";
+      s3Toggle.classList.toggle("primary", s3State);
+    });
+  }
 
   let stepIndex = 1;
   const form = document.getElementById("outputs-form");
+  if (!form) return;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -260,7 +272,7 @@ setupTabs(document.getElementById("page-settings"));
       M7: Number(document.getElementById("m7").value),
       M8: Number(document.getElementById("m8").value),
       S1: Number(document.getElementById("s1").value),
-      S2: s2State ? 1700 : 1300, // example mapping for toggles; adjust as needed
+      S2: s2State ? 1700 : 1300, // example toggle mapping
       S3: s3State ? 1700 : 1300,
       arm: armState
     };
@@ -276,56 +288,47 @@ setupTabs(document.getElementById("page-settings"));
 })();
 
 /* ==========
-   Table row builders (match your API fields)
+   Row builders – match your API fields exactly
    ========== */
 function inputsRow(row) {
   return `<td>${row.id ?? ""}</td>
-    <td>${row.step_index ?? row.stepIndex ?? ""}</td>
-    <td>${row.direction ?? row.dir ?? ""}</td>
-    <td>${row.force ?? row.throttle ?? ""}</td>
-    <td>${row.s1 ?? row.S1 ?? ""}</td>
-    <td>${row.s2 ?? row.S2 ?? ""}</td>
-    <td>${row.s3 ?? row.S3 ?? ""}</td>
-    <td>${(row.arm ?? "")}</td>
-    <td>${row.timestamp ?? row.created_at ?? row.createdAt ?? ""}</td>`;
+    <td>${row.step_index ?? ""}</td>
+    <td>${row.direction ?? ""}</td>
+    <td>${row.force ?? ""}</td>
+    <td>${row.s1 ?? ""}</td>
+    <td>${row.s2 ?? ""}</td>
+    <td>${row.s3 ?? ""}</td>
+    <td>${row.arm ?? ""}</td>
+    <td>${row.timestamp ?? ""}</td>`;
 }
 
 function outputsRow(row) {
   return `<td>${row.id ?? ""}</td>
-    <td>${row.step_index ?? row.stepIndex ?? ""}</td>
-    <td>${row.direction ?? row.dir ?? ""}</td>
+    <td>${row.step_index ?? ""}</td>
+    <td>${row.direction ?? ""}</td>
     <td>${row.force ?? ""}</td>
-    <td>${row.M1 ?? row.m1 ?? ""}</td>
-    <td>${row.M2 ?? row.m2 ?? ""}</td>
-    <td>${row.M3 ?? row.m3 ?? ""}</td>
-    <td>${row.M4 ?? row.m4 ?? ""}</td>
-    <td>${row.M5 ?? row.m5 ?? ""}</td>
-    <td>${row.M6 ?? row.m6 ?? ""}</td>
-    <td>${row.M7 ?? row.m7 ?? ""}</td>
-    <td>${row.M8 ?? row.m8 ?? ""}</td>
-    <td>${row.S1 ?? row.s1 ?? ""}</td>
-    <td>${row.S2 ?? row.s2 ?? ""}</td>
-    <td>${row.S3 ?? row.s3 ?? ""}</td>
+    <td>${row.M1 ?? ""}</td><td>${row.M2 ?? ""}</td><td>${row.M3 ?? ""}</td><td>${row.M4 ?? ""}</td>
+    <td>${row.M5 ?? ""}</td><td>${row.M6 ?? ""}</td><td>${row.M7 ?? ""}</td><td>${row.M8 ?? ""}</td>
+    <td>${row.S1 ?? ""}</td><td>${row.S2 ?? ""}</td><td>${row.S3 ?? ""}</td>
     <td>${row.arm ?? ""}</td>`;
 }
-
-function imuRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.X ?? row.x ?? ""}</td>
-    <td>${row.Y ?? row.y ?? ""}</td>
-    <td>${row.Z ?? row.z ?? ""}</td>
-    <td>${row.roll ?? ""}</td>
-    <td>${row.pitch ?? ""}</td>
-    <td>${row.yaw ?? ""}</td>
-    <td>${row.timestamp ?? row.created_at ?? row.createdAt ?? ""}</td>`;
-}
-
 
 function batteriesRow(row) {
   return `<td>${row.id ?? ""}</td>
     <td>${row.voltage ?? row.voltage1 ?? ""}</td>
     <td>${row.current ?? row.current1 ?? ""}</td>
     <td>${row.temp ?? row.temperature1 ?? ""}</td>
+    <td>${row.timestamp ?? ""}</td>`;
+}
+
+function imuRow(row) {
+  return `<td>${row.id ?? ""}</td>
+    <td>${row.X ?? ""}</td>
+    <td>${row.Y ?? ""}</td>
+    <td>${row.Z ?? ""}</td>
+    <td>${row.roll ?? ""}</td>
+    <td>${row.pitch ?? ""}</td>
+    <td>${row.yaw ?? ""}</td>
     <td>${row.timestamp ?? ""}</td>`;
 }
 
@@ -354,14 +357,25 @@ function sonarRow(row) {
 }
 
 /* ==========
-   Polling
+   Initial fetch + Polling
    ========== */
-setInterval(() => {
-  fetchAndUpdateTable(`${BASE_API}/inputs/`, "table-inputs", inputsRow);
+window.addEventListener("load", () => {
+  fetchAndUpdateTable(`${BASE_API}/inputs/`,  "table-inputs",  inputsRow);
   fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
+  fetchAndUpdateTable(`${BASE_API}/imu/`,     "table-imu",     imuRow);
+  // Uncomment more as needed:
   // fetchAndUpdateTable(`${BASE_API}/batteries/`, "table-batteries", batteriesRow);
-  fetchAndUpdateTable(`${BASE_API}/imu/`, "table-imu", imuRow);
   // fetchAndUpdateTable(`${BASE_API}/internals/`, "table-internals", internalsRow);
   // fetchAndUpdateTable(`${BASE_API}/externals/`, "table-externals", externalsRow);
-  // fetchAndUpdateTable(`${BASE_API}/sonar/`, "table-sonar", sonarRow);
+  // fetchAndUpdateTable(`${BASE_API}/sonar/`,     "table-sonar",     sonarRow);
+});
+
+setInterval(() => {
+  fetchAndUpdateTable(`${BASE_API}/inputs/`,  "table-inputs",  inputsRow);
+  fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
+  fetchAndUpdateTable(`${BASE_API}/imu/`,     "table-imu",     imuRow);
+  // fetchAndUpdateTable(`${BASE_API}/batteries/`, "table-batteries", batteriesRow);
+  // fetchAndUpdateTable(`${BASE_API}/internals/`, "table-internals", internalsRow);
+  // fetchAndUpdateTable(`${BASE_API}/externals/`, "table-externals", externalsRow);
+  // fetchAndUpdateTable(`${BASE_API}/sonar/`,     "table-sonar",     sonarRow);
 }, 1000);
