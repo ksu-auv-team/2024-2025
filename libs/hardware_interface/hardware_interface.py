@@ -291,7 +291,7 @@ class HardwareInterface:
         while True:
             try:
                 temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/latest')
-                logging.debug("ControlProcess received data: %s", temp)
+                logging.error("ControlProcess received data: %s", temp)
                 data = splitData(temp)
                 self._MotorController(data[0])
                 self._TorpController(data[1])
