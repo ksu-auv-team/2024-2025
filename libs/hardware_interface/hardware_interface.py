@@ -274,10 +274,47 @@ class HardwareInterface:
         while True:
             try:
                 self._SerialIMU()
-                sendDataToServer(self.sensor_data['IMU_Data'], self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/imu/')
+                imu_raw = self.sensor_data['IMU_Data']
+                imu_payload = self._format_imu_payload(imu_raw)
+
+                sendDataToServer(
+                    imu_payload,
+                    f"{self.config['DB_Address']}:{self.config['DB_Port']}/imu/"
+                )
             except Exception as e:
                 logging.error("SensorProcess error: %s", e)
             time.sleep(0.01)  # ~100 Hz-ish
+
+    def _format_imu_payload(self, imu_raw: dict) -> dict:
+        """
+        @brief Normalize raw IMU dictionary to API schema.
+        @param imu_raw Raw IMU dict. May contain capitalized keys like 'Roll'.
+        @return Dict matching the /imu/ POST schema.
+
+        Expected schema:
+          step_index: int
+          X, Y, Z: float
+          roll, pitch, yaw: float  (lowercase)
+        """
+        # Extract with safe defaults; cast to float
+        X = float(imu_raw.get('X', 0.0))
+        Y = float(imu_raw.get('Y', 0.0))
+        Z = float(imu_raw.get('Z', 0.0))
+
+        # Accept either lowercase or capitalized keys from the sensor layer
+        roll  = float(imu_raw.get('roll',  imu_raw.get('Roll',  0.0)))
+        pitch = float(imu_raw.get('pitch', imu_raw.get('Pitch', 0.0)))
+        yaw   = float(imu_raw.get('yaw',   imu_raw.get('Yaw',   0.0)))
+
+        payload = {
+            "step_index": int(self._imu_step_index),
+            "X": X, "Y": Y, "Z": Z,
+            "roll": roll, "pitch": pitch, "yaw": yaw
+        }
+
+        # Increment after use
+        self._imu_step_index += 1
+        return payload
 
     # ------------------------------- Runner -------------------------------
 
