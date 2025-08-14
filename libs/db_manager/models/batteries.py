@@ -24,7 +24,7 @@ class Batteries(db.Model):
     ...                           temperature1=25.0, temperature2=30.0, temperature3=35.0)
     """
     __tablename__ = 'batteries'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     voltage1 = db.Column(db.Float, nullable=False)
     voltage2 = db.Column(db.Float, nullable=False)

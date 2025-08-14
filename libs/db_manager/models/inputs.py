@@ -2,7 +2,7 @@ from . import db
 
 class Input(db.Model):
     __tablename__ = 'inputs'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     direction = db.Column(db.String(50), nullable=False)
     force = db.Column(db.Float, nullable=False)

@@ -13,7 +13,7 @@ class InternalTemperature(db.Model):
     >>> internal_temp_data = InternalTemperature(step_index=1, temperature=30.0)
     """
     __tablename__ = 'internal_temperature'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
 
@@ -43,7 +43,7 @@ class InternalHumidity(db.Model):
     >>> internal_humidity_data = InternalHumidity(step_index=1, humidity=45.0)
     """
     __tablename__ = 'internal_humidity'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     humidity = db.Column(db.Float, nullable=False)
 
@@ -73,7 +73,7 @@ class InternalPressure(db.Model):
     >>> internal_pressure_data = InternalPressure(step_index=1, pressure=1013.25)
     """
     __tablename__ = 'internal_pressure'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     pressure = db.Column(db.Float, nullable=False)
 

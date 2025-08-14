@@ -69,26 +69,155 @@
             <header class="section-title">Inputs Table</header>
             <div class="scroll">
               <table class="table" id="table-inputs">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Step Index</th>
-                    <th>Direction</th>
-                    <th>Force</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- rows injected by JS -->
-                </tbody>
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Step Index</th>
+              <th>Direction 1</th>
+              <th>Direction 2</th>
+              <th>Force</th>
+              <th>Timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- rows injected by JS -->
+            </tbody>
               </table>
             </div>
-          </div>
-          <div class="panel">
+            <!-- Input Panel -->
+            <div class="input-panel surface" style="margin-top:1em; padding:1em;"></div>
+              <header class="section-title">Set Inputs</header>
+              <form id="inputs-form">
+              <div class="slider-group" style="display: flex; align-items: center; gap: 1em;">
+                <label for="direction1">Direction 1</label>
+                <select id="direction1" name="direction1">
+                <option value="">Select</option>
+                <option value="forward">Forward</option>
+                <option value="backward">Backward</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="yaw_right">Yaw Right</option>
+                <option value="yaw_left">Yaw Left</option>
+                </select>
+                <label for="direction2">Direction 2</label>
+                <select id="direction2" name="direction2">
+                <option value="">Select</option>
+                <option value="forward">Forward</option>
+                <option value="backward">Backward</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="yaw_right">Yaw Right</option>
+                <option value="yaw_left">Yaw Left</option>
+                </select>
+              </div>
+              <div class="slider-group">
+                <label for="force-input">Force</label>
+                <input type="range" id="force-input" name="force" min="0" max="100" value="0" />
+                <input type="number" id="force-input-num" min="0" max="100" value="0" style="width:60px; margin-left:8px;" />
+              </div>
+              <div style="margin-top:1em;">
+                <button type="submit" class="button primary">Send to Database</button>
+              </div>
+              </form>
+            </div>
+            </div>
+            <div class="panel">
             <header class="section-title">Inputs Chart</header>
             <div class="chart" id="chart-inputs">Chart placeholder</div>
+            </div>
           </div>
-        </div>
+          <script>
+            // Force slider and input sync
+            [
+            ["force-input", "force-input-num"]
+            ].forEach(function(ids){
+            const slider = document.getElementById(ids[0]);
+            const input = document.getElementById(ids[1]);
+            if(slider && input){
+              slider.addEventListener("input",function(){
+              input.value = slider.value;
+              });
+              input.addEventListener("input",function(){
+              slider.value = input.value;
+              });
+            }
+            });
+
+            // Direction dropdown logic
+            const directions = [
+            "forward", "backward", "left", "right", "up", "down", "yaw_right", "yaw_left"
+            ];
+            const opposites = {
+            forward: "backward",
+            backward: "forward",
+            left: "right",
+            right: "left",
+            up: "down",
+            down: "up",
+            yaw_right: "yaw_left",
+            yaw_left: "yaw_right"
+            };
+            const dir1 = document.getElementById("direction1");
+            const dir2 = document.getElementById("direction2");
+
+            function updateDirectionOptions() {
+            const selected1 = dir1.value;
+            const selected2 = dir2.value;
+
+            // Enable all first
+            Array.from(dir1.options).forEach(opt => opt.disabled = false);
+            Array.from(dir2.options).forEach(opt => opt.disabled = false);
+
+            // If direction1 selected, disable its opposite in direction2
+            if (selected1 && opposites[selected1]) {
+              Array.from(dir2.options).forEach(opt => {
+              if (opt.value === opposites[selected1]) opt.disabled = true;
+              if (opt.value === selected1) opt.disabled = true;
+              });
+            }
+            // If direction2 selected, disable its opposite in direction1
+            if (selected2 && opposites[selected2]) {
+              Array.from(dir1.options).forEach(opt => {
+              if (opt.value === opposites[selected2]) opt.disabled = true;
+              if (opt.value === selected2) opt.disabled = true;
+              });
+            }
+            }
+
+            dir1.addEventListener("change", updateDirectionOptions);
+            dir2.addEventListener("change", updateDirectionOptions);
+
+            // Form submit handler for Inputs (replace with actual DB logic)
+            document.getElementById("inputs-form").addEventListener("submit",function(e){
+            e.preventDefault();
+            const direction1 = dir1.value;
+            const direction2 = dir2.value;
+            const force = Number(document.getElementById("force-input").value);
+            let data = {};
+            if (direction1 && direction2) {
+              data = { direction1, direction2, force };
+            } else if (direction1) {
+              data = { direction: direction1, force };
+            } else if (direction2) {
+              data = { direction: direction2, force };
+            } else {
+              alert("Please select at least one direction.");
+              return;
+            }
+            // TODO: Send 'data' to database via AJAX/fetch
+            fetch("http://192.168.8.109:5000/inputs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            })
+            .then(res => res.ok ? alert("Data sent!") : alert("Send failed"))
+            .catch(err => alert("Error: " + err));
+            });
+          </script>
 
         <!-- Outputs -->
         <div class="tab-panel data-split surface" role="tabpanel" id="tab-outputs" aria-labelledby="tabbtn-outputs">
@@ -259,7 +388,13 @@
               arm: armState
             };
             // TODO: Send 'data' to database via AJAX/fetch
-            alert("Data to send:\n" + JSON.stringify(data, null, 2));
+            fetch("http://192.168.8.109:5000/outputs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            })
+            .then(res => res.ok ? alert("Data sent!") : alert("Send failed"))
+            .catch(err => alert("Error: " + err));
           });
         </script>
 

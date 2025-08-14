@@ -26,7 +26,7 @@ class Outputs(db.Model):
                              M6=0.8, M7=0.9, M8=1.0, S1=0.3, S2=0.4, S3=0.5, arm=True)
     """
     __tablename__ = 'outputs'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     direction = db.Column(db.String(50), nullable=False)
     force = db.Column(db.Float, nullable=False)

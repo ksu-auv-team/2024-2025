@@ -14,7 +14,7 @@ class Sonar(db.Model):
     >>> sonar_data = Sonar(step_index=1, distance=5.4, angle=15.0)
     """
     __tablename__ = 'sonar'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     distance = db.Column(db.Float, nullable=False)
     angle = db.Column(db.Float, nullable=False)

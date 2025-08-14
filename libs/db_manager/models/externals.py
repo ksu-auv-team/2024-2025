@@ -13,7 +13,7 @@ class ExternalPressure(db.Model):
     >>> external_pressure_data = ExternalPressure(step_index=1, pressure=1013.25)
     """
     __tablename__ = 'external_pressure'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     pressure = db.Column(db.Float, nullable=False)
 
@@ -43,7 +43,7 @@ class ExternalDepth(db.Model):
     >>> external_depth_data = ExternalDepth(step_index=1, depth=10.0)
     """
     __tablename__ = 'external_depth'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     depth = db.Column(db.Float, nullable=False)
 

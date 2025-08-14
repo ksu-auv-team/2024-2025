@@ -19,7 +19,7 @@ class IMU(db.Model):
     >>> imu_data = IMU(step_index=1, X=0.0, Y=0.1, Z=0.2, roll=15.0, pitch=30.0, yaw=45.0)
     """
     __tablename__ = 'imu'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
     X = db.Column(db.Float, nullable=False)
     Y = db.Column(db.Float, nullable=False)
