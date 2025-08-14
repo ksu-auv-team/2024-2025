@@ -65,6 +65,53 @@ def main():
         # ["python", "-m", "libs.movement_package.run"]
     ]
 
+    init_db_posts = [
+        # ---- Inputs ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/inputs/",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"direction":"forward","force":50,"s1":0.0,"s2":0.0,"s3":0.0,"arm":false}'],
+
+        # ---- Outputs ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/outputs/",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"direction":"hold","force":0,"M1":1500,"M2":1500,"M3":1500,"M4":1500,"M5":1500,"M6":1500,"M7":1500,"M8":1500,"S1":1500,"S2":1300,"S3":1300,"arm":false}'],
+
+        # ---- Batteries ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/batteries/",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"voltage1":12.5,"voltage2":12.4,"voltage3":12.3,"current1":1.2,"current2":1.1,"current3":1.3,"temperature1":25.4,"temperature2":26.1,"temperature3":25.8}'],
+
+        # ---- Externals ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/external_pressure",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"pressure":101.3}'],
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/external_depth",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"depth":0.0}'],
+
+        # ---- IMU ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/imu/",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"X":0.0,"Y":0.0,"Z":9.81,"roll":0.0,"pitch":0.0,"yaw":0.0}'],
+
+        # ---- Internals ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/internal_temperature",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"temperature":25.0}'],
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/internal_humidity",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"humidity":45.0}'],
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/internal_pressure",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"pressure":101.3}'],
+
+        # ---- Sonar ----
+        ["curl","-sS","--fail","-X","POST","http://192.168.8.109:5000/sonar/",
+        "-H","Content-Type: application/json",
+        "-d",'{"step_index":1,"distance":3.42,"angle":57.0}'],
+    ]
+
+
     processes = []
     threads = []
     subprocs = []
@@ -105,6 +152,10 @@ def main():
         threads.append(t_err)
 
         time.sleep(5)
+
+        if proc_name == 'db_manager':
+            for cmd in init_db_posts:
+                subprocess.run(cmd, check=True)
     
     def terminate_processes():
         main_log.info("Terminating subprocesses...")
