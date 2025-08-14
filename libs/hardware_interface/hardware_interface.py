@@ -270,7 +270,7 @@ class HardwareInterface:
             # logging.error("Failed to send torpedo control data: %s", str(e))
             pass
 
-    def _ArmController(self):
+    def _ArmServoController(self):
         """
         @brief Sends Arm commands to the Arm controller.
         """
@@ -293,6 +293,8 @@ class HardwareInterface:
         while True:
             try:
                 self._MotorController()
+                self._TorpController()
+                self._ArmServoController()
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
             time.sleep(0.02)  # ~50 Hz
