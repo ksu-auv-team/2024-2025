@@ -249,8 +249,8 @@ class HardwareInterface:
         try:
             self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [self.input_data['M1'], self.input_data['M2'], self.input_data['M3'], self.input_data['M4'],
-                    self.input_data['M5'], self.input_data['M6'], self.input_data['M7'], self.input_data['M8']]
+            data = [int(self.input_data['M1']), int(self.input_data['M2']), int(self.input_data['M3']), int(self.input_data['M4']),
+                    int(self.input_data['M5']), int(self.input_data['M6']), int(self.input_data['M7']), int(self.input_data['M8'])]
             self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
             logging.debug("Motor control data sent: %s", self.input_data)
         except Exception as e:
@@ -264,7 +264,7 @@ class HardwareInterface:
         try:
             self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [self.input_data['S2'], self.input_data['S3']]
+            data = [int(self.input_data['S2']), int(self.input_data['S3'])]
             self._sendI2CPacket(data, self.config['Torpedo_Controller_Address'])
             logging.debug("Torpedo control data sent: %s", self.input_data)
         except Exception as e:
@@ -278,7 +278,7 @@ class HardwareInterface:
         try:
             self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [self.input_data['S1']]
+            data = [int(self.input_data['S1'])]
             self._sendI2CPacket(data, self.config['Arm_Controller_Address'])
             logging.debug("Arm control data sent: %s", self.input_data)
         except Exception as e:
