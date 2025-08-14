@@ -249,7 +249,8 @@ class HardwareInterface:
         try:
             self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [value for key, value in self.input_data.items() if key.startswith("M")]
+            data = [self.input_data['M1'], self.input_data['M2'], self.input_data['M3'], self.input_data['M4'],
+                    self.input_data['M5'], self.input_data['M6'], self.input_data['M7'], self.input_data['M8']]
             self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
             logging.debug("Motor control data sent: %s", self.input_data)
         except Exception as e:
