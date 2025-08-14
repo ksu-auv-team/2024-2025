@@ -22,21 +22,45 @@ function fetchJSON(url, options = {}) {
   });
 }
 
+function normalizeToArray(payload) {
+  // Accept: array | object with common container keys | single object
+  if (Array.isArray(payload)) return payload;
+  if (payload == null) return [];
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.results)) return payload.results;
+  if (Array.isArray(payload.rows)) return payload.rows;
+  // If it looks like a single row (has step_index or id etc.), wrap it
+  const maybeRowKeys = ["id","step_index","direction","force","X","Y","Z","roll","pitch","yaw"];
+  const isLikelyRow = Object.keys(payload).some(k => maybeRowKeys.includes(k));
+  return isLikelyRow ? [payload] : [];
+}
+
 function fetchAndUpdateTable(url, tableId, rowBuilder) {
   fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-      const tbody = document.querySelector(`#${tableId} tbody`);
-      if (!tbody) return;
-      tbody.innerHTML = "";
-      (Array.isArray(data) ? data : [data]).forEach((row) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = rowBuilder(row);
-        tbody.appendChild(tr);
+    .then(async (res) => {
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`GET ${url} -> ${res.status} ${res.statusText} ${txt}`);
+      }
+      return res.json().catch(() => {
+        throw new Error(`GET ${url} returned non-JSON payload`);
       });
     })
-    .catch(() => {});
+    .then((data) => {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      if (!tbody) {
+        console.warn(`Table body not found: #${tableId} tbody`);
+        return;
+      }
+      const rows = normalizeToArray(data);
+      tbody.innerHTML = rows.map(r => `<tr>${rowBuilder(r)}</tr>`).join("");
+    })
+    .catch((err) => {
+      console.error(`[TableUpdate] ${tableId}:`, err);
+    });
 }
+
 
 /* ==========
    Camera refresh (cache-busting)
