@@ -260,8 +260,8 @@ setupTabs(document.getElementById("page-settings"));
       M7: Number(document.getElementById("m7").value),
       M8: Number(document.getElementById("m8").value),
       S1: Number(document.getElementById("s1").value),
-      S2: s2State ? 1700 : 1300,
-      S3: s3State ? 1700 : 1300,
+      S2: s2State ? 0 : 255,
+      S3: s3State ? 0 : 255,
       arm: armState
     };
 
