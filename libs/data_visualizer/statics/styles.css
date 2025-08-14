@@ -20,7 +20,7 @@ body {
   color: var(--text);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   height: 100vh;           /* exactly one viewport height */
-  overflow: hidden;        /* prevent page from exceeding screen height */
+  overflow: hidden;        /* prevent page scrolling beyond screen height */
   display: flex;
   flex-direction: column;
 }
@@ -101,13 +101,17 @@ body {
   overflow: hidden;           /* container won't create page scroll */
 }
 
+/* Only show the active tab panel */
 .tab-panel {
-  display: grid;
+  display: none;              /* hidden by default */
+  overflow: hidden;           /* child panels scroll inside */
+}
+.tab-panel.active {
+  display: grid;              /* visible */
   grid-template-columns: 1fr 1fr;
   gap: var(--gap);
-  overflow: hidden;           /* child panels will scroll */
 }
-.tab-panel.active { display: grid; }
+
 .data-split .panel {
   display: flex; flex-direction: column;
   min-height: 0; max-height: 100%;

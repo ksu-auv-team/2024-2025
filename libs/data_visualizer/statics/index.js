@@ -35,7 +35,6 @@ function fetchAndUpdateTable(url, tableId, rowBuilder) {
       const rows = normalizeToArray(data);
       rows.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));  // sort by id desc
       tbody.innerHTML = rows.map(r => `<tr>${rowBuilder(r)}</tr>`).join("");
-      // console.log(`[Table] ${tableId}: rendered ${rows.length} rows`);
     })
     .catch((err) => {
       console.error(`[TableUpdate] ${tableId}:`, err);
@@ -95,18 +94,23 @@ function setupTabs(container) {
     panels.forEach((p, i) => p.classList.toggle("active", i === idx));
   }
 
+  // normalize initial state (ensure exactly one active)
+  let initial = Array.from(panels).findIndex(p => p.classList.contains("active"));
+  if (initial < 0) initial = 0;
+  activateTab(initial);
+
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => activateTab(index));
     tab.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight") activateTab((index + 1) % tabs.length);
-      if (e.key === "ArrowLeft") activateTab((index - 1 + tabs.length) % tabs.length);
+      if (e.key === "ArrowLeft")  activateTab((index - 1 + tabs.length) % tabs.length);
     });
   });
 }
 setupTabs(document.getElementById("page-data"));
 setupTabs(document.getElementById("page-settings"));
 
-/* ---------- Inputs form + Arm button ---------- */
+/* ---------- Inputs form + Arm button (no immediate POST) ---------- */
 (function initInputs() {
   // slider <-> number sync
   const pairs = [["force-input", "force-input-num"]];
@@ -143,49 +147,27 @@ setupTabs(document.getElementById("page-settings"));
   dir1.addEventListener("change", updateDirectionOptions);
   dir2.addEventListener("change", updateDirectionOptions);
 
-  // Arm toggle button (Inputs)
+  // Arm toggle (affects next submit only)
   const armBtn = document.getElementById("inputs-arm-toggle");
-  let inputsArmState = false;
+  let inputsArmState = false; // default: disarmed
   let stepIndex = 1;
 
   if (armBtn) {
     armBtn.addEventListener("click", () => {
       inputsArmState = !inputsArmState;
       armBtn.textContent = inputsArmState ? "Disarm" : "Arm";
-
-      // Minimal payload to record arm state in Inputs table
-      const payload = {
-        step_index: stepIndex,
-        direction: dir1.value || dir2.value || "hold",
-        force: Number(document.getElementById("force-input").value || 0),
-        s1: 0.0,
-        s2: 0.0,
-        s3: 0.0,
-        arm: inputsArmState
-      };
-
-      fetch(`${BASE_API}/inputs/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-        .then((res) => {
-          if (!res.ok) return res.json().then(j => { throw new Error(JSON.stringify(j)); });
-          // do not increment step_index just for arm toggles if you don't want to
-          fetchAndUpdateTable(`${BASE_API}/inputs/`, "table-inputs", inputsRow);
-        })
-        .catch((err) => alert("Arm toggle error: " + err.message));
+      armBtn.classList.toggle("primary", inputsArmState);
     });
   }
 
-  // Main Inputs form
+  // Main Inputs form submit
   const form = document.getElementById("inputs-form");
   if (!form) return;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const direction = dir1.value || dir2.value;
-    if (!direction) {
+    const directionChosen = dir1.value || dir2.value;
+    if (!directionChosen) {
       alert("Please select at least one direction.");
       return;
     }
@@ -193,12 +175,12 @@ setupTabs(document.getElementById("page-settings"));
 
     const payload = {
       step_index: stepIndex++,
-      direction: direction,
+      direction: directionChosen,
       force: force,
       s1: 0.0,
       s2: 0.0,
       s3: 0.0,
-      arm: inputsArmState
+      arm: inputsArmState   // <-- set by the Arm button; no POST on toggle
     };
 
     fetch(`${BASE_API}/inputs/`, {
@@ -332,44 +314,11 @@ function imuRow(row) {
     <td>${row.timestamp ?? ""}</td>`;
 }
 
-function batteriesRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.voltage ?? row.voltage1 ?? ""}</td>
-    <td>${row.current ?? row.current1 ?? ""}</td>
-    <td>${row.temp ?? row.temperature1 ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
-function internalsRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.cpu_temp ?? row.temperature ?? ""}</td>
-    <td>${row.ram ?? ""}</td>
-    <td>${row.disk ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
-function externalsRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.depth ?? ""}</td>
-    <td>${row.temp ?? row.temperature ?? ""}</td>
-    <td>${row.salinity ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
-function sonarRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.angle ?? ""}</td>
-    <td>${row.range ?? row.distance ?? ""}</td>
-    <td>${row.strength ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
-/* ---------- Initial fetch + Polling (exact-height safe) ---------- */
+/* ---------- Initial fetch + Polling ---------- */
 window.addEventListener("load", () => {
   fetchAndUpdateTable(`${BASE_API}/inputs/`,  "table-inputs",  inputsRow);
   fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
   fetchAndUpdateTable(`${BASE_API}/imu/`,     "table-imu",     imuRow);
-  // Add others as needed
 });
 
 setInterval(() => {
