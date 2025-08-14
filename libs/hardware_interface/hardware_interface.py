@@ -6,7 +6,7 @@
   - Probes configured I2C addresses using I2C_RDWR (adapter-friendly).
   - Skips probing write-only / RX-only devices (e.g., motor controller at 0x4C).
   - Runs two processes:
-      * ControlProcess: fetches inputs from DB and forwards to motor controller.
+      * ControlProcess: fetches latest outputs from DB and forwards to controllers.
       * SensorProcess : reads IMU data over serial and posts to DB.
   - IMU values stored in engineering units (m/s and degrees).
 
@@ -21,13 +21,13 @@ import time
 import json
 import logging
 import multiprocessing
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 
 import smbus2
 from smbus2 import i2c_msg
 
 from .config_loader import load_config
-from .logic import sendDataToServer, getDataFromServer, splitData
+from .logic import sendDataToServer, getDataFromServer
 from .i2c_devices.BNO08x import BNO08xI2C, BNO08xSerial
 
 
@@ -70,7 +70,7 @@ class HardwareInterface:
 
         # Build skip set: devices you don't want to read-probe (RX-only / write-only controllers)
         skip_cfg = self.config.get('Skip_Probe_Addresses', [])
-        skip_set = { _to_addr(a) for a in skip_cfg } if skip_cfg else set()
+        skip_set = {_to_addr(a) for a in skip_cfg} if isinstance(skip_cfg, list) else set()
         if 'Motor_Controller_Address' in self.config:
             # Motor controller at 0x4C is RX-only: do not read-probe it
             try:
@@ -85,11 +85,11 @@ class HardwareInterface:
         )
         self.check_hardware_addresses()
 
-        # Create the data structures for communication
+        # Default input shadow (used only if DB empty)
         self.input_data: Dict[str, int] = {
-            "M1": 127, "M2": 127, "M3": 127, "M4": 127,
-            "M5": 127, "M6": 127, "M7": 127, "M8": 127,
-            "S1": 0, "S2": 0, "S3": 0
+            "M1": 1500, "M2": 1500, "M3": 1500, "M4": 1500,
+            "M5": 1500, "M6": 1500, "M7": 1500, "M8": 1500,
+            "S1": 1500, "S2": 1300, "S3": 1300
         }
 
         # IMU in engineering units (m/s and degrees)
@@ -112,35 +112,52 @@ class HardwareInterface:
 
         self._imu_step_index = 0  # for IMU payloads
 
-    # ------------------------------- Internal helpers -------------------------------
+    # ------------------------------- Small helpers -------------------------------
 
-    def _config_addresses(self):
+    @staticmethod
+    def _u8(x) -> int:
         """
-        @brief Gather all configured I2C addresses as ints.
+        @brief Clamp a numeric value to 0..255 and return int.
         """
-        keys = [
-            'IMU_Address',
-            'Hydrophone_Address',
-            'Motor_Controller_Address',
-            'Blank_Address',
-            'Display_Address',
-            'Torpedo_Address',
-            'Arm_Controller_Address',
-            'Power_Safety_Address'
-        ]
-        addrs = []
-        for k in keys:
-            if k in self.config:
-                try:
-                    addrs.append(_to_addr(self.config[k]))
-                except Exception as e:
-                    logging.warning("Bad address for %s: %r (%s)", k, self.config[k], e)
-        return addrs
-    
-    def _sendI2CPacket(self, data : list, address : str) -> None:
+        try:
+            xi = int(round(float(x)))
+        except Exception:
+            xi = 0
+        return max(0, min(255, xi))
+
+    @staticmethod
+    def _pwm_us_to_u8(us: float, lo: float = 1000.0, hi: float = 2000.0) -> int:
+        """
+        @brief Map a PWM in microseconds (default 1000..2000) to 0..255 (byte).
+        @param us Input microseconds (may be str/float/int). Clamped to [lo..hi].
+        @param lo Low end of PWM range.
+        @param hi High end of PWM range.
+        """
+        try:
+            u = float(us)
+        except Exception:
+            return 0
+        if hi <= lo:
+            return 0
+        # clamp to [lo..hi]
+        if u < lo: u = lo
+        if u > hi: u = hi
+        t = (u - lo) / (hi - lo)  # 0..1
+        return HardwareInterface._u8(round(t * 255.0))
+
+    # ------------------------------- I2C core -------------------------------
+
+    def _sendI2CPacket(self, data: List[int], address: str) -> None:
+        """
+        @brief Send a byte list to an I2C 7-bit address using write_i2c_block_data.
+        @param data List of integers 0..255.
+        @param address Address as int or '0x..' string.
+        """
         try:
             addr_int = _to_addr(address)
-            self.bus.write_i2c_block_data(addr_int, 0, data)
+            # Ensure all entries are u8
+            payload = [self._u8(x) for x in data]
+            self.bus.write_i2c_block_data(addr_int, 0, payload)
         except Exception as e:
             logging.error("Failed to send I2C packet to %s: %s", address, e)
 
@@ -165,6 +182,29 @@ class HardwareInterface:
                 # If it's just a NACK, log at INFO; otherwise ERROR
                 level = logging.INFO if (err and '121' in err) else logging.ERROR
                 logging.log(level, "No device at %s (%s)", hex(addr), err or "no response")
+
+    def _config_addresses(self):
+        """
+        @brief Gather all configured I2C addresses as ints.
+        """
+        keys = [
+            'IMU_Address',
+            'Hydrophone_Address',
+            'Motor_Controller_Address',
+            'Blank_Address',
+            'Display_Address',
+            'Torpedo_Address',
+            'Arm_Controller_Address',
+            'Power_Safety_Address'
+        ]
+        addrs = []
+        for k in keys:
+            if k in self.config:
+                try:
+                    addrs.append(_to_addr(self.config[k]))
+                except Exception as e:
+                    logging.warning("Bad address for %s: %r (%s)", k, self.config[k], e)
+        return addrs
 
     # ------------------------------- IMU Serial -------------------------------
 
@@ -240,62 +280,73 @@ class HardwareInterface:
         except Exception as e:
             logging.error("Failed to retrieve IMU data: %s", str(e))
 
-    # ------------------------------- Motor Controller -------------------------------
+    # ------------------------------- Controller senders -------------------------------
 
-    def _MotorController(self, data : dict):
+    def _MotorController(self, data: dict):
         """
-        @brief Sends motor control data to the motor controller.
+        @brief Sends motor control data (M1..M8) to the motor controller as bytes 0..255.
+        @details
+          Assumes DB stores PWM microseconds approximately 1000..2000.
         """
         try:
-            # Prepare data for sending
-            sentData = [int(data['M1']), int(data['M2']), int(data['M3']), int(data['M4']),
-                        int(data['M5']), int(data['M6']), int(data['M7']), int(data['M8'])]
+            sentData = [self._pwm_us_to_u8(data.get(k, 1500)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")]
             self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
-            logging.debug("Motor control data sent: %s", sentData)
+            logging.debug("Motor control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
-            pass
 
-    def _TorpController(self, data : dict):
+    def _TorpController(self, data: dict):
         """
-        @brief Sends Torp commands to the Torpedo controller.
+        @brief Sends S2/S3 to the Torpedo controller as bytes 0..255.
+        @details
+          If your torpedoes use 1300..1700 µs, that range is applied for mapping.
         """
         try:
-            # Prepare data for sending
-            sentData = [int(data['S2']), int(data['S3'])]
+            sentData = [
+                self._pwm_us_to_u8(data.get("S2", 1300), 1300, 1700),
+                self._pwm_us_to_u8(data.get("S3", 1300), 1300, 1700),
+            ]
             self._sendI2CPacket(sentData, hex(self.config['Torpedo_Controller_Address']))
-            logging.debug("Torpedo control data sent: %s", sentData)
+            logging.debug("Torpedo control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send torpedo control data: %s", str(e))
-            pass
 
-    def _ArmServoController(self, data : dict):
+    def _ArmServoController(self, data: dict):
         """
-        @brief Sends Arm commands to the Arm controller.
+        @brief Sends S1 to the Arm controller as a byte 0..255.
         """
         try:
-            # Prepare data for sending
-            sentData = [int(data['S1'])]
+            sentData = [self._pwm_us_to_u8(data.get("S1", 1500))]
             self._sendI2CPacket(sentData, hex(self.config['Arm_Controller_Address']))
-            logging.debug("Arm control data sent: %s", sentData)
+            logging.debug("Arm control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send arm control data: %s", str(e))
-            pass
 
     # ------------------------------- Processes -------------------------------
 
     def ControlProcess(self):
         """
-        @brief Loop fetching latest inputs from DB and forwarding to motor controller.
+        @brief Loop fetching latest outputs from DB and forwarding to controllers.
+        @details
+          Pulls /outputs/latest (dict) to avoid list handling. Applies defaults if fields missing.
         """
+        url = f"{self.config['DB_Address']}:{self.config['DB_Port']}/outputs/latest"
         while True:
             try:
-                temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/latest')
-                logging.error("ControlProcess received data: %s", temp)
-                data = splitData(temp)
-                self._MotorController(data[0])
-                self._TorpController(data[1])
-                self._ArmServoController(data[2])
+                row = getDataFromServer(url)  # dict or None/null
+                if not isinstance(row, dict):
+                    # nothing available yet
+                    time.sleep(0.02)
+                    continue
+
+                # Build slices with safe defaults (DB stores µs floats/ints)
+                motors = {k: row.get(k, 1500) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
+                torp   = {"S2": row.get("S2", 1300), "S3": row.get("S3", 1300)}
+                arm    = {"S1": row.get("S1", 1500)}
+
+                self._MotorController(motors)
+                self._TorpController(torp)
+                self._ArmServoController(arm)
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
             time.sleep(0.02)  # ~50 Hz
