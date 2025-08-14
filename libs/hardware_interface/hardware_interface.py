@@ -285,13 +285,11 @@ class HardwareInterface:
     def _MotorController(self, data: dict):
         """
         @brief Sends motor control data (M1..M8) to the motor controller as bytes 0..255.
-        @details
-          Assumes DB stores PWM microseconds approximately 1000..2000.
         """
         try:
-            sentData = [self._pwm_us_to_u8(data.get(k, 1500)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")]
+            sentData = [self._pwm_us_to_u8(data.get(k, 127)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")]
+            logging.error("Motor control data sent (u8): %s", sentData)
             self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
-            logging.debug("Motor control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
 
@@ -303,11 +301,11 @@ class HardwareInterface:
         """
         try:
             sentData = [
-                self._pwm_us_to_u8(data.get("S2", 1300), 1300, 1700),
-                self._pwm_us_to_u8(data.get("S3", 1300), 1300, 1700),
+                self._pwm_us_to_u8(data.get("S2", 90), 90, 150),
+                self._pwm_us_to_u8(data.get("S3", 90), 90, 150),
             ]
+            logging.error("Torpedo control data sent (u8): %s", sentData)
             self._sendI2CPacket(sentData, hex(self.config['Torpedo_Controller_Address']))
-            logging.debug("Torpedo control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send torpedo control data: %s", str(e))
 
@@ -316,9 +314,9 @@ class HardwareInterface:
         @brief Sends S1 to the Arm controller as a byte 0..255.
         """
         try:
-            sentData = [self._pwm_us_to_u8(data.get("S1", 1500))]
+            sentData = [self._pwm_us_to_u8(data.get("S1", 127))]
             self._sendI2CPacket(sentData, hex(self.config['Arm_Controller_Address']))
-            logging.debug("Arm control data sent (u8): %s", sentData)
+            logging.error("Arm control data sent (u8): %s", sentData)
         except Exception as e:
             logging.error("Failed to send arm control data: %s", str(e))
 
@@ -341,8 +339,10 @@ class HardwareInterface:
 
                 # Build slices with safe defaults (DB stores µs floats/ints)
                 motors = {k: row.get(k, 1500) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
-                torp   = {"S2": row.get("S2", 1300), "S3": row.get("S3", 1300)}
-                arm    = {"S1": row.get("S1", 1500)}
+                torp   = {"S2": row.get("S2", 90), "S3": row.get("S3", 90)}
+                arm    = {"S1": row.get("S1", 127)}
+
+                logging.error(f"ControlProcess Split Data: {motors}, {torp}, {arm}")
 
                 self._MotorController(motors)
                 self._TorpController(torp)
