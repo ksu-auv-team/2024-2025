@@ -335,6 +335,7 @@ class HardwareInterface:
                 if not isinstance(row, dict):
                     # nothing available yet
                     time.sleep(0.02)
+                    logging.error("ControlProcess no data available")
                     continue
 
                 logging.error(f"ControlProcess Raw Data: {row}")
@@ -351,7 +352,6 @@ class HardwareInterface:
                 self._ArmServoController(arm)
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
-            time.sleep(0.02)  # ~50 Hz
 
     def SensorProcess(self):
         """
@@ -369,7 +369,6 @@ class HardwareInterface:
                 )
             except Exception as e:
                 logging.error("SensorProcess error: %s", e)
-            time.sleep(0.01)  # ~100 Hz-ish
 
     def _format_imu_payload(self, imu_raw: dict) -> dict:
         """
@@ -411,12 +410,17 @@ class HardwareInterface:
         # Optional one more probe at runtime start
         self.check_hardware_addresses()
 
-        control_proc = multiprocessing.Process(target=self.ControlProcess, daemon=True)
-        sensor_proc  = multiprocessing.Process(target=self.SensorProcess,  daemon=True)
-        control_proc.start()
-        sensor_proc.start()
-        control_proc.join()
-        sensor_proc.join()
+        # control_proc = multiprocessing.Process(target=self.ControlProcess, daemon=True)
+        # sensor_proc  = multiprocessing.Process(target=self.SensorProcess,  daemon=True)
+        # control_proc.start()
+        # sensor_proc.start()
+        # control_proc.join()
+        # sensor_proc.join()
+
+        self.ControlProcess()
+        self.SensorProcess()
+        time.sleep(0.02)  # ~50 Hz
+
 
     # ------------------------------- TODO modules -------------------------------
 
