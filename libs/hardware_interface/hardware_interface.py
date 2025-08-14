@@ -248,8 +248,8 @@ class HardwareInterface:
         """
         try:
             # Prepare data for sending
-            sentData = [data['M1'], data['M2'], data['M3'], data['M4'],
-                    data['M5'], data['M6'], data['M7'], data['M8']]
+            sentData = [int(data['M1']), int(data['M2']), int(data['M3']), int(data['M4']),
+                        int(data['M5']), int(data['M6']), int(data['M7']), int(data['M8'])]
             self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
             logging.debug("Motor control data sent: %s", sentData)
         except Exception as e:
@@ -262,7 +262,7 @@ class HardwareInterface:
         """
         try:
             # Prepare data for sending
-            sentData = [data['S1'], data['S2'], data['S3']]
+            sentData = [int(data['S2']), int(data['S3'])]
             self._sendI2CPacket(sentData, hex(self.config['Torpedo_Controller_Address']))
             logging.debug("Torpedo control data sent: %s", sentData)
         except Exception as e:
@@ -275,7 +275,7 @@ class HardwareInterface:
         """
         try:
             # Prepare data for sending
-            sentData = [data['S1']]
+            sentData = [int(data['S1'])]
             self._sendI2CPacket(sentData, hex(self.config['Arm_Controller_Address']))
             logging.debug("Arm control data sent: %s", sentData)
         except Exception as e:
