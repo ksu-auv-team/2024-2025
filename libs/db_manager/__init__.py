@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_marshmallow import Marshmallow
+from flask_cors import CORS  # <-- add this
 from .models import db
 from .routes.batteries_routes import batteries_bp
 from .routes.externals_routes import externals_bp
@@ -9,7 +10,6 @@ from .routes.internals_routes import internals_bp
 from .routes.outputs_routes import outputs_bp
 from .routes.sonar_routes import sonar_bp
 
-
 ma = Marshmallow()
 
 def create_app():
@@ -17,8 +17,18 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db_manager.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+    # Enable CORS for your frontend origin
+    CORS(
+        app,
+        resources={r"/*": {"origins": ["http://192.168.8.109:5002"]}},
+        supports_credentials=False,
+        methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"]
+    )
+
     db.init_app(app)
     ma.init_app(app)
+
     app.register_blueprint(batteries_bp)
     app.register_blueprint(externals_bp)
     app.register_blueprint(imu_bp)
