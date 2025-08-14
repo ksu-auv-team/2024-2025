@@ -291,10 +291,10 @@ class HardwareInterface:
         while True:
             try:
                 temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
-                self.input_data = splitData(temp)
-                self._MotorController()
-                self._TorpController()
-                self._ArmServoController()
+                data = splitData(temp)
+                self._MotorController(data[0])
+                self._TorpController(data[1])
+                self._ArmServoController(data[2])
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
             time.sleep(0.02)  # ~50 Hz
