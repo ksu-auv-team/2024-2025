@@ -2,43 +2,22 @@
    KSU AUV Data Visualizer – Client Script
    ============================================ */
 
-/* ==========
-   Config
-   ========== */
-const BASE_API = "http://192.168.8.109:5000"; // Flask server
-const CAM0 = "http://localhost:5001/video_0";
-const CAM1 = "http://localhost:5001/video_1";
+const BASE_API = "http://192.168.8.109:5000";  // Flask API
+const CAM0 = "http://192.168.8.109:5001/video_0";
+const CAM1 = "http://192.168.8.109:5001/video_1";
 
-console.log("[AUV UI] app.js loaded");
+console.log("[AUV UI] index.js loaded");
 
-/* ==========
-   Helpers
-   ========== */
+/* ---------- Helpers ---------- */
 function $(sel) { return document.querySelector(sel); }
 function $all(sel) { return document.querySelectorAll(sel); }
 
-function fetchJSON(url, options = {}) {
-  return fetch(url, options).then(async (res) => {
-    if (!res.ok) {
-      let msg = "";
-      try { msg = JSON.stringify(await res.json()); } catch (_e) {}
-      throw new Error(`${res.status} ${res.statusText} ${msg}`);
-    }
-    return res.json();
-  });
-}
-
 function normalizeToArray(payload) {
-  // Accept: array | object with common container keys | single object
   if (Array.isArray(payload)) return payload;
-  if (payload == null) return [];
+  if (!payload) return [];
   if (Array.isArray(payload.data)) return payload.data;
   if (Array.isArray(payload.items)) return payload.items;
-  if (Array.isArray(payload.results)) return payload.results;
-  if (Array.isArray(payload.rows)) return payload.rows;
-  const maybeRowKeys = ["id","step_index","direction","force","X","Y","Z","roll","pitch","yaw","M1","S1"];
-  const isLikelyRow = Object.keys(payload).some(k => maybeRowKeys.includes(k));
-  return isLikelyRow ? [payload] : [];
+  return [payload];
 }
 
 function fetchAndUpdateTable(url, tableId, rowBuilder) {
@@ -48,28 +27,22 @@ function fetchAndUpdateTable(url, tableId, rowBuilder) {
         const txt = await res.text().catch(() => "");
         throw new Error(`GET ${url} -> ${res.status} ${res.statusText} ${txt}`);
       }
-      return res.json().catch(() => { throw new Error(`GET ${url} returned non-JSON`); });
+      return res.json();
     })
     .then((data) => {
       const tbody = document.querySelector(`#${tableId} tbody`);
-      if (!tbody) {
-        console.warn(`[Table] Missing tbody for #${tableId}`);
-        return;
-      }
+      if (!tbody) return console.warn(`[Table] Missing tbody for #${tableId}`);
       const rows = normalizeToArray(data);
-      // after: const rows = normalizeToArray(data);
-      rows.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+      rows.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));  // sort by id desc
       tbody.innerHTML = rows.map(r => `<tr>${rowBuilder(r)}</tr>`).join("");
-      console.log(`[Table] ${tableId}: rendered ${rows.length} rows`);
+      // console.log(`[Table] ${tableId}: rendered ${rows.length} rows`);
     })
     .catch((err) => {
       console.error(`[TableUpdate] ${tableId}:`, err);
     });
 }
 
-/* ==========
-   Camera refresh (cache-busting)
-   ========== */
+/* ---------- Camera refresh ---------- */
 function updateCameraSrc(id, baseUrl) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -78,9 +51,7 @@ function updateCameraSrc(id, baseUrl) {
 setInterval(() => updateCameraSrc("camera-feed-0", CAM0), 1000);
 setInterval(() => updateCameraSrc("camera-feed-1", CAM1), 333);
 
-/* ==========
-   SPA navigation
-   ========== */
+/* ---------- SPA navigation ---------- */
 const pages = ["page-cameras", "page-data", "page-settings"];
 const navLinks = $all(".nav-link");
 
@@ -111,9 +82,7 @@ navLinks.forEach((a) => {
   });
 });
 
-/* ==========
-   Tabs (Data + Settings)
-   ========== */
+/* ---------- Tabs (Data + Settings) ---------- */
 function setupTabs(container) {
   const tabList = container.querySelector(".tab-list");
   if (!tabList) return;
@@ -137,10 +106,8 @@ function setupTabs(container) {
 setupTabs(document.getElementById("page-data"));
 setupTabs(document.getElementById("page-settings"));
 
-/* ==========
-   Inputs form
-   ========== */
-(function initInputsForm() {
+/* ---------- Inputs form + Arm button ---------- */
+(function initInputs() {
   // slider <-> number sync
   const pairs = [["force-input", "force-input-num"]];
   pairs.forEach(([sliderId, inputId]) => {
@@ -152,7 +119,7 @@ setupTabs(document.getElementById("page-settings"));
     }
   });
 
-  // direction dropdown constraints
+  // direction constraints
   const opposites = {forward:"backward", backward:"forward", left:"right", right:"left", up:"down", down:"up", yaw_right:"yaw_left", yaw_left:"yaw_right"};
   const dir1 = document.getElementById("direction1");
   const dir2 = document.getElementById("direction2");
@@ -176,7 +143,42 @@ setupTabs(document.getElementById("page-settings"));
   dir1.addEventListener("change", updateDirectionOptions);
   dir2.addEventListener("change", updateDirectionOptions);
 
-  let stepIndex = 1; // simple increment
+  // Arm toggle button (Inputs)
+  const armBtn = document.getElementById("inputs-arm-toggle");
+  let inputsArmState = false;
+  let stepIndex = 1;
+
+  if (armBtn) {
+    armBtn.addEventListener("click", () => {
+      inputsArmState = !inputsArmState;
+      armBtn.textContent = inputsArmState ? "Disarm" : "Arm";
+
+      // Minimal payload to record arm state in Inputs table
+      const payload = {
+        step_index: stepIndex,
+        direction: dir1.value || dir2.value || "hold",
+        force: Number(document.getElementById("force-input").value || 0),
+        s1: 0.0,
+        s2: 0.0,
+        s3: 0.0,
+        arm: inputsArmState
+      };
+
+      fetch(`${BASE_API}/inputs/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then((res) => {
+          if (!res.ok) return res.json().then(j => { throw new Error(JSON.stringify(j)); });
+          // do not increment step_index just for arm toggles if you don't want to
+          fetchAndUpdateTable(`${BASE_API}/inputs/`, "table-inputs", inputsRow);
+        })
+        .catch((err) => alert("Arm toggle error: " + err.message));
+    });
+  }
+
+  // Main Inputs form
   const form = document.getElementById("inputs-form");
   if (!form) return;
 
@@ -192,11 +194,11 @@ setupTabs(document.getElementById("page-settings"));
     const payload = {
       step_index: stepIndex++,
       direction: direction,
-      force: force, // adjust scale if your API expects 0.0–1.0
+      force: force,
       s1: 0.0,
       s2: 0.0,
       s3: 0.0,
-      arm: false
+      arm: inputsArmState
     };
 
     fetch(`${BASE_API}/inputs/`, {
@@ -204,17 +206,19 @@ setupTabs(document.getElementById("page-settings"));
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-      .then((res) => (res.ok ? alert("Inputs sent!") : res.json().then((j) => { throw new Error(JSON.stringify(j)); })))
+      .then((res) => {
+        if (!res.ok) return res.json().then(j => { throw new Error(JSON.stringify(j)); });
+        alert("Inputs sent!");
+        fetchAndUpdateTable(`${BASE_API}/inputs/`, "table-inputs", inputsRow);
+      })
       .catch((err) => alert("Error: " + err.message));
   });
 })();
 
-/* ==========
-   Outputs form
-   ========== */
-(function initOutputsForm() {
-  const ids = ["m1","m2","m3","m4","m5","m6","m7","m8","s1"];
-  ids.forEach((id) => {
+/* ---------- Outputs form ---------- */
+(function initOutputs() {
+  // slider <-> number sync for motors + s1
+  ["m1","m2","m3","m4","m5","m6","m7","m8","s1"].forEach((id) => {
     const slider = document.getElementById(id);
     const input = document.getElementById(`${id}-input`);
     if (slider && input) {
@@ -274,7 +278,7 @@ setupTabs(document.getElementById("page-settings"));
       M7: Number(document.getElementById("m7").value),
       M8: Number(document.getElementById("m8").value),
       S1: Number(document.getElementById("s1").value),
-      S2: s2State ? 1700 : 1300, // example toggle mapping
+      S2: s2State ? 1700 : 1300,
       S3: s3State ? 1700 : 1300,
       arm: armState
     };
@@ -284,14 +288,16 @@ setupTabs(document.getElementById("page-settings"));
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-      .then((res) => (res.ok ? alert("Outputs sent!") : res.json().then((j) => { throw new Error(JSON.stringify(j)); })))
+      .then((res) => {
+        if (!res.ok) return res.json().then(j => { throw new Error(JSON.stringify(j)); });
+        alert("Outputs sent!");
+        fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
+      })
       .catch((err) => alert("Error: " + err.message));
   });
 })();
 
-/* ==========
-   Row builders – match your API fields exactly
-   ========== */
+/* ---------- Row builders ---------- */
 function inputsRow(row) {
   return `<td>${row.id ?? ""}</td>
     <td>${row.step_index ?? ""}</td>
@@ -315,14 +321,6 @@ function outputsRow(row) {
     <td>${row.arm ?? ""}</td>`;
 }
 
-function batteriesRow(row) {
-  return `<td>${row.id ?? ""}</td>
-    <td>${row.voltage ?? row.voltage1 ?? ""}</td>
-    <td>${row.current ?? row.current1 ?? ""}</td>
-    <td>${row.temp ?? row.temperature1 ?? ""}</td>
-    <td>${row.timestamp ?? ""}</td>`;
-}
-
 function imuRow(row) {
   return `<td>${row.id ?? ""}</td>
     <td>${row.X ?? ""}</td>
@@ -331,6 +329,14 @@ function imuRow(row) {
     <td>${row.roll ?? ""}</td>
     <td>${row.pitch ?? ""}</td>
     <td>${row.yaw ?? ""}</td>
+    <td>${row.timestamp ?? ""}</td>`;
+}
+
+function batteriesRow(row) {
+  return `<td>${row.id ?? ""}</td>
+    <td>${row.voltage ?? row.voltage1 ?? ""}</td>
+    <td>${row.current ?? row.current1 ?? ""}</td>
+    <td>${row.temp ?? row.temperature1 ?? ""}</td>
     <td>${row.timestamp ?? ""}</td>`;
 }
 
@@ -358,26 +364,16 @@ function sonarRow(row) {
     <td>${row.timestamp ?? ""}</td>`;
 }
 
-/* ==========
-   Initial fetch + Polling
-   ========== */
+/* ---------- Initial fetch + Polling (exact-height safe) ---------- */
 window.addEventListener("load", () => {
   fetchAndUpdateTable(`${BASE_API}/inputs/`,  "table-inputs",  inputsRow);
   fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
   fetchAndUpdateTable(`${BASE_API}/imu/`,     "table-imu",     imuRow);
-  // Uncomment more as needed:
-  // fetchAndUpdateTable(`${BASE_API}/batteries/`, "table-batteries", batteriesRow);
-  // fetchAndUpdateTable(`${BASE_API}/internals/`, "table-internals", internalsRow);
-  // fetchAndUpdateTable(`${BASE_API}/externals/`, "table-externals", externalsRow);
-  // fetchAndUpdateTable(`${BASE_API}/sonar/`,     "table-sonar",     sonarRow);
+  // Add others as needed
 });
 
 setInterval(() => {
   fetchAndUpdateTable(`${BASE_API}/inputs/`,  "table-inputs",  inputsRow);
   fetchAndUpdateTable(`${BASE_API}/outputs/`, "table-outputs", outputsRow);
   fetchAndUpdateTable(`${BASE_API}/imu/`,     "table-imu",     imuRow);
-  // fetchAndUpdateTable(`${BASE_API}/batteries/`, "table-batteries", batteriesRow);
-  // fetchAndUpdateTable(`${BASE_API}/internals/`, "table-internals", internalsRow);
-  // fetchAndUpdateTable(`${BASE_API}/externals/`, "table-externals", externalsRow);
-  // fetchAndUpdateTable(`${BASE_API}/sonar/`,     "table-sonar",     sonarRow);
 }, 1000);
