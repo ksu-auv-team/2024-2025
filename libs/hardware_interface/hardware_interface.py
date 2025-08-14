@@ -27,7 +27,7 @@ import smbus2
 from smbus2 import i2c_msg
 
 from .config_loader import load_config
-from .logic import sendDataToServer, getDataFromServer
+from .logic import sendDataToServer, getDataFromServer, splitData
 from .i2c_devices.BNO08x import BNO08xI2C, BNO08xSerial
 
 
@@ -242,45 +242,42 @@ class HardwareInterface:
 
     # ------------------------------- Motor Controller -------------------------------
 
-    def _MotorController(self):
+    def _MotorController(self, data : dict):
         """
         @brief Sends motor control data to the motor controller.
         """
         try:
-            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [int(self.input_data['M1']), int(self.input_data['M2']), int(self.input_data['M3']), int(self.input_data['M4']),
-                    int(self.input_data['M5']), int(self.input_data['M6']), int(self.input_data['M7']), int(self.input_data['M8'])]
-            self._sendI2CPacket(data, hex(self.config['Motor_Controller_Address']))
-            logging.debug("Motor control data sent: %s", self.input_data)
+            sentData = [data['M1'], data['M2'], data['M3'], data['M4'],
+                    data['M5'], data['M6'], data['M7'], data['M8']]
+            self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
+            logging.debug("Motor control data sent: %s", sentData)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
             pass
 
-    def _TorpController(self):
+    def _TorpController(self, data : dict):
         """
         @brief Sends Torp commands to the Torpedo controller.
         """
         try:
-            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [int(self.input_data['S2']), int(self.input_data['S3'])]
-            self._sendI2CPacket(data, hex(self.config['Torpedo_Controller_Address']))
-            logging.debug("Torpedo control data sent: %s", self.input_data)
+            sentData = [data['S1'], data['S2'], data['S3']]
+            self._sendI2CPacket(sentData, hex(self.config['Torpedo_Controller_Address']))
+            logging.debug("Torpedo control data sent: %s", sentData)
         except Exception as e:
             logging.error("Failed to send torpedo control data: %s", str(e))
             pass
 
-    def _ArmServoController(self):
+    def _ArmServoController(self, data : dict):
         """
         @brief Sends Arm commands to the Arm controller.
         """
         try:
-            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
-            data = [int(self.input_data['S1'])]
-            self._sendI2CPacket(data, hex(self.config['Arm_Controller_Address']))
-            logging.debug("Arm control data sent: %s", self.input_data)
+            sentData = [data['S1']]
+            self._sendI2CPacket(sentData, hex(self.config['Arm_Controller_Address']))
+            logging.debug("Arm control data sent: %s", sentData)
         except Exception as e:
             logging.error("Failed to send arm control data: %s", str(e))
             pass
@@ -293,6 +290,8 @@ class HardwareInterface:
         """
         while True:
             try:
+                temp = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
+                self.input_data = splitData(temp)
                 self._MotorController()
                 self._TorpController()
                 self._ArmServoController()

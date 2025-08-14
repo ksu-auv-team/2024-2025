@@ -18,7 +18,7 @@ def sendDataToServer(data: dict, url: str) -> None:
     except json.JSONDecodeError as e:
         raise ValueError(f"Error decoding JSON from response: {e}")
 
-def getDataFromServer(url):
+def getDataFromServer(url) -> dict:
     """
     Retrieve data from a server via HTTP GET request.
 
