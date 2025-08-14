@@ -125,10 +125,6 @@
               </form>
             </div>
             </div>
-            <div class="panel">
-            <header class="section-title">Inputs Chart</header>
-            <div class="chart" id="chart-inputs">Chart placeholder</div>
-            </div>
           </div>
           <script>
             // Force slider and input sync
@@ -387,7 +383,6 @@
               s3: Number(document.getElementById("s3").value),
               arm: armState
             };
-            // TODO: Send 'data' to database via AJAX/fetch
             fetch("http://192.168.8.109:5000/outputs", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -396,6 +391,95 @@
             .then(res => res.ok ? alert("Data sent!") : alert("Send failed"))
             .catch(err => alert("Error: " + err));
           });
+          function fetchAndUpdateTable(url, tableId, rowBuilder) {
+            fetch(url)
+              .then(res => res.json())
+              .then(data => {
+                const tbody = document.querySelector(`#${tableId} tbody`);
+                if (!tbody) return;
+                tbody.innerHTML = "";
+                data.forEach(row => {
+                  const tr = document.createElement("tr");
+                  tr.innerHTML = rowBuilder(row);
+                  tbody.appendChild(tr);
+                });
+              })
+              .catch(() => {});
+          }
+
+          // Table row builders
+          function inputsRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.step_index ?? ""}</td>
+              <td>${row.direction1 ?? ""}</td>
+              <td>${row.direction2 ?? ""}</td>
+              <td>${row.force ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+          function outputsRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.step_index ?? ""}</td>
+              <td>${row.direction ?? ""}</td>
+              <td>${row.force ?? ""}</td>
+              <td>${row.m1 ?? ""}</td>
+              <td>${row.m2 ?? ""}</td>
+              <td>${row.m3 ?? ""}</td>
+              <td>${row.m4 ?? ""}</td>
+              <td>${row.m5 ?? ""}</td>
+              <td>${row.m6 ?? ""}</td>
+              <td>${row.m7 ?? ""}</td>
+              <td>${row.m8 ?? ""}</td>
+              <td>${row.s1 ?? ""}</td>
+              <td>${row.s2 ?? ""}</td>
+              <td>${row.s3 ?? ""}</td>
+              <td>${row.arm ?? ""}</td>`;
+          }
+          function batteriesRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.voltage ?? ""}</td>
+              <td>${row.current ?? ""}</td>
+              <td>${row.temp ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+          function imuRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.accel ?? ""}</td>
+              <td>${row.gyro ?? ""}</td>
+              <td>${row.mag ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+          function internalsRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.cpu_temp ?? ""}</td>
+              <td>${row.ram ?? ""}</td>
+              <td>${row.disk ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+          function externalsRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.depth ?? ""}</td>
+              <td>${row.temp ?? ""}</td>
+              <td>${row.salinity ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+          function sonarRow(row) {
+            return `<td>${row.id ?? ""}</td>
+              <td>${row.angle ?? ""}</td>
+              <td>${row.range ?? ""}</td>
+              <td>${row.strength ?? ""}</td>
+              <td>${row.timestamp ?? ""}</td>`;
+          }
+
+          // Polling interval
+          setInterval(() => {
+            fetchAndUpdateTable("http://192.168.8.109:5000/inputs", "table-inputs", inputsRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/outputs", "table-outputs", outputsRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/batteries", "table-batteries", batteriesRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/imu", "table-imu", imuRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/internals", "table-internals", internalsRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/externals", "table-externals", externalsRow);
+            fetchAndUpdateTable("http://192.168.8.109:5000/sonar", "table-sonar", sonarRow);
+          }, 1000);
         </script>
 
         <!-- Batteries -->
