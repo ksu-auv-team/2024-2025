@@ -110,6 +110,8 @@ class HardwareInterface:
         except Exception as e:
             logging.warning("IMU serial connect failed initially: %s", e)
 
+        self._imu_step_index = 0  # for IMU payloads
+
     # ------------------------------- Internal helpers -------------------------------
 
     def _config_addresses(self):
@@ -307,7 +309,7 @@ class HardwareInterface:
         yaw   = float(imu_raw.get('yaw',   imu_raw.get('Yaw',   0.0)))
 
         payload = {
-            "step_index": int(self._imu_step_index),
+            "step_index": int(self._imu_step_index + 1),
             "X": X, "Y": Y, "Z": Z,
             "roll": roll, "pitch": pitch, "yaw": yaw
         }
