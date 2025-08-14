@@ -245,7 +245,7 @@ class HardwareInterface:
         @brief Sends motor control data to the motor controller.
         """
         try:
-            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs')
+            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
             # Prepare data for sending
             data = [value for key, value in self.input_data.items() if key.startswith("M")]
             self._sendI2CPacket(data, self.config['Motor_Controller_Address'])
@@ -262,7 +262,6 @@ class HardwareInterface:
         """
         while True:
             try:
-                self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/inputs')
                 self._MotorController()
             except Exception as e:
                 logging.error("ControlProcess error: %s", e)
