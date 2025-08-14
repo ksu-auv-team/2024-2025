@@ -256,6 +256,34 @@ class HardwareInterface:
             # logging.error("Failed to send motor control data: %s", str(e))
             pass
 
+    def _TorpController(self):
+        """
+        @brief Sends Torp commands to the Torpedo controller.
+        """
+        try:
+            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
+            # Prepare data for sending
+            data = [self.input_data['S2'], self.input_data['S3']]
+            self._sendI2CPacket(data, self.config['Torpedo_Controller_Address'])
+            logging.debug("Torpedo control data sent: %s", self.input_data)
+        except Exception as e:
+            # logging.error("Failed to send torpedo control data: %s", str(e))
+            pass
+
+    def _ArmController(self):
+        """
+        @brief Sends Arm commands to the Arm controller.
+        """
+        try:
+            self.input_data = getDataFromServer(self.config['DB_Address'] + ":" + str(self.config['DB_Port']) + '/outputs/')
+            # Prepare data for sending
+            data = [self.input_data['S1']]
+            self._sendI2CPacket(data, self.config['Arm_Controller_Address'])
+            logging.debug("Arm control data sent: %s", self.input_data)
+        except Exception as e:
+            # logging.error("Failed to send arm control data: %s", str(e))
+            pass
+
     # ------------------------------- Processes -------------------------------
 
     def ControlProcess(self):
