@@ -1,5 +1,5 @@
 {
-    "DB_Address": "127.0.0.1",
+    "DB_Address": "http://127.0.0.1",
     "DB_Port": 5000,
     "MaxMotorSpeed": 255,
     "MinMotorSpeed": 0
