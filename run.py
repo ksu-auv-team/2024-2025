@@ -153,9 +153,9 @@ def main():
 
         time.sleep(5)
 
-        if proc_name == 'db_manager':
-            for cmd in init_db_posts:
-                subprocess.run(cmd, check=True)
+        # if proc_name == 'db_manager':
+        #     for cmd in init_db_posts:
+        #         subprocess.run(cmd, check=True)
     
     def terminate_processes():
         main_log.info("Terminating subprocesses...")
