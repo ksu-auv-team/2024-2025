@@ -134,7 +134,11 @@ def main():
         processes = to_qualify_processes
 
     for cmd in processes:
-        proc_name = cmd[-1].split('.')[-2]  # e.g., 'db_manager' from 'libs.db_manager.run'
+        main_log.info(f"Starting subprocess: {' '.join(cmd)}")
+        try:
+            proc_name = cmd[-1].split('.')[-2]  # e.g., 'db_manager' from 'libs.db_manager.run'
+        except IndexError:
+            proc_name = "hardware_interface"
         proc_logger = logger.create_logger(proc_name, args.print_debug)
 
         # Start subprocess with stdout/stderr piped
