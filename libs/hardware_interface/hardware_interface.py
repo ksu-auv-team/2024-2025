@@ -30,6 +30,8 @@ from .config_loader import load_config
 from .logic import sendDataToServer, getDataFromServer
 from .i2c_devices.BNO08x import BNO08xI2C, BNO08xSerial
 
+import requests
+
 
 def _to_addr(v) -> int:
     """
@@ -470,6 +472,108 @@ class HardwareInterface:
 
     # ------------------------------- Runner -------------------------------
 
+    def _find_last_true_segment_between_falses(self, rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        @brief Return the newest contiguous slice of rows that is strictly
+               between arm == False and arm == False and contains at least one True.
+        @details Example arm timeline:
+                 F, T, T, F, F, T, T, T, F
+                 -> returns rows[5:8] (indices 5..7), because it's the last segment
+                    bounded by False on both sides and containing True(s).
+        """
+        if not rows:
+            return []
+
+        # Ensure deterministic order (db_utils.list_outputs() already orders by step_index)
+        rows = sorted(rows, key=lambda r: r.get("step_index", r.get("id", 0)))
+        arms = [bool(r.get("arm", False) or r.get("Arm", False)) for r in rows]
+
+        false_idxs = [i for i, a in enumerate(arms) if not a]
+        if len(false_idxs) < 2:
+            return []  # need at least False .. False to bound a segment
+
+        # Walk *consecutive* pairs of False indices from the end to the start
+        for j in range(len(false_idxs) - 1, 0, -1):
+            f0 = false_idxs[j - 1]
+            f1 = false_idxs[j]
+            if f1 - f0 <= 1:
+                # consecutive falses -> empty window, skip
+                continue
+            # If there's at least one True between f0 and f1, that's a valid segment
+            if any(arms[i] for i in range(f0 + 1, f1)):
+                return rows[f0 + 1 : f1]
+
+        return []  # no complete bounded True segment found
+
+    # -------------------------------------------------------------------------
+    # Data loading + storing for replay
+    # -------------------------------------------------------------------------
+    def replay(self) -> int:
+        """
+        @brief Fetch all outputs, locate the newest arm==True segment bounded by
+               arm==False on both sides, and store it for playback.
+        @return Number of frames stored in _replay_frames.
+        """
+        url = f"{self.config['DB_Address']}:{self.config['DB_Port']}/outputs/"
+        try:
+            resp = requests.get(url, timeout=5)
+            resp.raise_for_status()
+            rows = resp.json()
+            if not isinstance(rows, list):
+                logging.warning("replay(): unexpected response (not a list): %r", type(rows))
+                self._replay_frames = []
+                self._replay_cursor = 0
+                return 0
+
+            segment = self._find_last_true_segment_between_falses(rows)
+            self._replay_frames: List[Dict[str, Any]] = segment
+            self._replay_cursor: int = 0
+
+            if not segment:
+                logging.info("replay(): no complete arm==True segment found between False boundaries.")
+                return 0
+
+            start_idx = segment[0].get("step_index")
+            end_idx   = segment[-1].get("step_index")
+            logging.info(
+                "replay(): stored %d frames (step_index %s..%s) for playback.",
+                len(segment), start_idx, end_idx
+            )
+            return len(segment)
+
+        except Exception as e:
+            logging.error("replay() failed: %s", e)
+            self._replay_frames = []
+            self._replay_cursor = 0
+            return 0
+
+    # -------------------------------------------------------------------------
+    # Optional: play the stored replay segment to hardware at a fixed rate
+    # -------------------------------------------------------------------------
+    def play_replay(self, rate_hz: float = 50.0) -> None:
+        """
+        @brief Drive the motors through the stored replay frames at a fixed rate.
+        @details Call replay() first. This will send only M1..M8 (like ControlProcess).
+        """
+        frames: List[Dict[str, Any]] = getattr(self, "_replay_frames", [])
+        if not frames:
+            logging.warning("play_replay(): no frames loaded; call replay() first.")
+            return
+
+        period = 1.0 / max(rate_hz, 1.0)
+        NEUTRAL = {k: 127 for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
+
+        try:
+            for frame in frames:
+                motors = {k: int(frame.get(k, 127)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
+                self._MotorController(motors)
+                time.sleep(period)
+        except Exception as e:
+            logging.error("play_replay() error: %s", e)
+        finally:
+            # Always neutralize at the end
+            self._MotorController(NEUTRAL)
+
     def run(self):
         """
         @brief Start control and sensor processes and wait (join).
@@ -486,8 +590,8 @@ class HardwareInterface:
 
         # while True:
         #     if not self.qualify:
-        #         ##self.ControlProcess()
-        self.qualification()
+        self.ControlProcess()
+        # self.qualification()
             #     # self.SensorProcess()
             #     time.sleep(0.02)  # ~50 Hz
             # else:
