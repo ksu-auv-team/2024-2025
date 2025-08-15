@@ -288,7 +288,7 @@ class HardwareInterface:
         """
         try:
             sent_data = [value for key, value in data.items() if key.startswith("M")]
-            self.bus.write_i2c_block_data(int(self.config['Motor_Controller_Address']), 0, sent_data)
+            self.bus.write_i2c_block_data(76, 0, sent_data)
             logging.error("Motor control data sent (u8): %s", sent_data)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
