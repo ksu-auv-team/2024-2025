@@ -185,7 +185,7 @@ class CM:
             self.parse_mapping()
             self.map_data()
             self.convertData()
-            self.post_data()
+            # self.post_data()
             print("self.convertedData:", self.convertedData)
             self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
             pygame.time.wait(10)

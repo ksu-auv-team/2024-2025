@@ -134,7 +134,7 @@ curl -X GET http://192.168.8.109:5000/internal_pressure/latest
 ### POST (add output)
 
 ```bash
-curl -X POST http://192.168.8.109:5000/outputs/ -H "Content-Type: application/json" -d '{"step_index":1,"direction":"forward","force":0.75,"M1":0.1,"M2":0.2,"M3":0.3,"M4":0.4,"M5":0.5,"M6":0.6,"M7":0.7,"M8":0.8,"S1":0.11,"S2":0.22,"S3":0.33,"arm":true}'
+curl -X POST http://192.168.8.109:5000/outputs/ -H "Content-Type: application/json" -d '{"step_index":1,"direction":"forward","force":0,"M1":127,"M2":127,"M3":127,"M4":127,"M5":127,"M6":127,"M7":127,"M8":127,"S1":0.11,"S2":0.22,"S3":0.33,"arm":true}'
 ```
 
 ### GET (all outputs)

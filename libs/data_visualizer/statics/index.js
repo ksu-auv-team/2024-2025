@@ -47,8 +47,8 @@ function updateCameraSrc(id, baseUrl) {
   if (!el) return;
   el.src = baseUrl + "?ts=" + Date.now();
 }
-setInterval(() => updateCameraSrc("camera-feed-0", CAM0), 1000);
-setInterval(() => updateCameraSrc("camera-feed-1", CAM1), 333);
+// setInterval(() => updateCameraSrc("camera-feed-0", CAM0), 1000);
+// setInterval(() => updateCameraSrc("camera-feed-1", CAM1), 333);
 
 /* ---------- SPA navigation ---------- */
 const pages = ["page-cameras", "page-data", "page-settings"];
