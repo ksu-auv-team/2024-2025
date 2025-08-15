@@ -115,8 +115,8 @@ class HardwareInterface:
         self.qualify = qualify
 
     def qualification(self):
-        time.sleep(60)
-        breakCase = time.time() + 60*1
+        time.sleep(5)
+        breakCase = time.time() + 5*1
         while(True):
             motors: Dict[str, int] = {
                 "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
