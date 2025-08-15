@@ -41,16 +41,16 @@ class CM:
         self.joystick = None
         self.init_joystick()
 
-        with open('configs/controller.json') as f:
+        with open('configs/controller_configs.json') as f:
             self.config = json.load(f)
             # if args.P:
             #     self.baseurl = self.config['poolUrl']
             # else:
             #     self.baseurl = self.config['labUrl']
-            self.config = self.config['Controller']
+            self.config = self.config['GameController']
 
         self.joy_data = []
-        
+        self.count = 0
         del self.config['_comment']
 
         # Each element in the map list is a list with three elements: element 0 is the button number, element 1 is the axis number, and element 2 is whether the axis is inverted.
@@ -58,14 +58,11 @@ class CM:
 
         self.out_data = {"Arm": 0, "X": 0.0, "Y": 0.0, "Z": 0.0}
         self.mapping_choice = mapping_choice
-
+        self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
         # orin_ip = '192.168.1.246'
         orin_ip = '10.42.0.203'
         self.url = f"http://{orin_ip}:5000/input"
-
         # Configure logging
-        logging.basicConfig(filename='logs/controller.log', level=logging.INFO, 
-                            format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     def init_joystick(self):
         pygame.init()
@@ -120,6 +117,13 @@ class CM:
     def map_data(self):
         """
         Maps joystick data to controller outputs based on the configured mapping.
+        step_index = db.Column(db.Integer, nullable=False)
+        direction = db.Column(db.String(50), nullable=False)
+        force = db.Column(db.Float, nullable=False)
+        s1 = db.Column(db.Float, nullable=False)
+        s2 = db.Column(db.Float, nullable=False)
+        s3 = db.Column(db.Float, nullable=False)
+        arm = db.Column(db.Boolean, nullable=False)
         """
         for control, mapping in self.map.items():
             button_index, axis_index, invert = mapping
@@ -153,7 +157,7 @@ class CM:
         Sends the joystick data to the Flask server.
         """
         try:
-            response = requests.post(self.url, json=self.out_data)
+            response = requests.post(self.url, json=self.convertedData)
             if response.status_code == 200:
                 logging.info("Data successfully sent to the server.")
             else:
@@ -180,10 +184,34 @@ class CM:
             self.get_data()
             self.parse_mapping()
             self.map_data()
-            ##self.post_data()
+            self.convertData()
+            self.post_data()
             self.log_output(version = 0)
             pygame.time.wait(10)
-            
+    
+    def convertData(self):
+        if self.out_data["X"]>0.2:
+            self.convertedData["Direction"] += "Forward,"
+            self.convertedData["Force"] = self.out_data["X"]
+        if self.out_data["X"]<-0.2:
+            self.convertedData["Direction"] += "Backward,"
+            self.convertedData["Force"] = self.out_data["X"]
+        if self.out_data["Y"]>0.2:
+            self.convertedData["Direction"] += "Up,"
+            self.convertedData["Force"] = self.out_data["Y"]
+        if self.out_data["Y"]<-0.2:
+            self.convertedData["Direction"] += "Down,"
+            self.convertedData["Force"] = self.out_data["Y"]
+        if self.out_data["Z"]>0.2:
+            self.convertedData["Direction"] += "Left,"
+            self.convertedData["Force"] = self.out_data["Z"]
+        if self.out_data["Y"]<-0.2:
+            self.convertedData["Direction"] += "Right,"
+            self.convertedData["Force"] = self.out_data["Z"]
+        self.convertedData["step_index"] = self.count
+        self.count = self.count + 1
+
+        
     def test_run(self):
         while True:
             axis = input('Enter axis (X, Y, Z, Pitch, Roll, Yaw): ')
