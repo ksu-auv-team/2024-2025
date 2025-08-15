@@ -287,21 +287,13 @@ class HardwareInterface:
         @brief Sends motor control data (M1..M8) to the motor controller as bytes 0..255.
         """
         try:
-            sentData = [
-                self._pwm_us_to_u8(data["M1"], 0, 255),
-                self._pwm_us_to_u8(data["M2"], 0, 255),
-                self._pwm_us_to_u8(data["M3"], 0, 255),
-                self._pwm_us_to_u8(data["M4"], 0, 255),
-                self._pwm_us_to_u8(data["M5"], 0, 255),
-                self._pwm_us_to_u8(data["M6"], 0, 255),
-                self._pwm_us_to_u8(data["M7"], 0, 255),
-                self._pwm_us_to_u8(data["M8"], 0, 255)
-            ]
-            logging.error("Motor control data sent (u8): %s", sentData)
-            self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
+            sent_data = [value for key, value in data.items() if key.startswith("M")]
+            self.bus.write_i2c_block_data(self.config['Motor_Controller_Address'], 0, sent_data)
+            logging.error("Motor control data sent (u8): %s", sent_data)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
-
+            return
+    
     def _TorpController(self, data: dict):
         """
         @brief Sends S2/S3 to the Torpedo controller as bytes 0..255.
