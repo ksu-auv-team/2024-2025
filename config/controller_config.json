@@ -1,8 +1,7 @@
 {
     "DB_Address": "http://192.168.8.109",
     "DB_Port": 5000,
-    "Controller_Schemas": {
-        "GameController": {
+    "GameController": {
         "_comment": ["button", "axis", "inverted"],
         "Arm": [null, 19, 0], 
         "Yaw": [null, 0, 0], 
@@ -15,7 +14,7 @@
         "Torpedo_1": [null, 11, 0], 
         "Torpedo_2": [null, 12, 0]
         },
-        "FlightController":{
+    "FlightController":{
         "_comment": ["button", "axis", "inverted"],
         "Arm": [null, 19, 0], 
         "Yaw": [null, 0, 0], 
@@ -28,5 +27,4 @@
         "Torpedo_1": [null, 11, 0], 
         "Torpedo_2": [null, 12, 0]
         }
-    }
 }
