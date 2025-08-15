@@ -64,6 +64,9 @@ class CM:
         # S3 = db.Column(db.Float, nullable=False)
         # arm = db.Column(db.Boolean, nullable=False)
         self.remapped_to_motor_outputs = {
+            "step_index": 0,
+            "direction": "",
+            "force": 0.0,
             "M1": 127,
             "M2": 127,
             "M3": 127,
@@ -75,7 +78,7 @@ class CM:
             "S1": 127,
             "S2": 127,
             "S3": 127,
-            "Arm": False
+            "arm": False
         }
 
         
@@ -169,140 +172,75 @@ class CM:
         logging.info(f"Mapped data: {self.out_data}")
 
     def remap_to_outputs(self, data : dict[str, int | float | bool]):
+        self.remapped_to_motor_outputs['step_index'] += 1
+        self.remapped_to_motor_outputs['arm'] = self.out_data['Arm']
         if data['Arm']:
             if data['X'] > 0.2:
-                self.remapped_to_motor_outputs['M1'] = 200
-                self.remapped_to_motor_outputs['M2'] = 200
-                self.remapped_to_motor_outputs['M3'] = 56
-                self.remapped_to_motor_outputs['M4'] = 200
+                self.remapped_to_motor_outputs['M1'] = int(255)
+                self.remapped_to_motor_outputs['M2'] = int(255)
+                self.remapped_to_motor_outputs['M3'] = int(0)
+                self.remapped_to_motor_outputs['M4'] = int(255)
             elif data['X'] < -0.2:
-                self.remapped_to_motor_outputs['M1'] = 56
-                self.remapped_to_motor_outputs['M2'] = 56
-                self.remapped_to_motor_outputs['M3'] = 200
-                self.remapped_to_motor_outputs['M4'] = 56
+                self.remapped_to_motor_outputs['M1'] = int(0)
+                self.remapped_to_motor_outputs['M2'] = int(0)
+                self.remapped_to_motor_outputs['M3'] = int(255)
+                self.remapped_to_motor_outputs['M4'] = int(0)
             elif data['Y'] > 0.2:
-                self.remapped_to_motor_outputs['M1'] = 56
-                self.remapped_to_motor_outputs['M2'] = 200
-                self.remapped_to_motor_outputs['M3'] = 200
-                self.remapped_to_motor_outputs['M4'] = 200
+                self.remapped_to_motor_outputs['M1'] = int(0)
+                self.remapped_to_motor_outputs['M2'] = int(255)
+                self.remapped_to_motor_outputs['M3'] = int(255)
+                self.remapped_to_motor_outputs['M4'] = int(255)
             elif data['Y'] < -0.2:
-                self.remapped_to_motor_outputs['M1'] = 200
-                self.remapped_to_motor_outputs['M2'] = 56
-                self.remapped_to_motor_outputs['M3'] = 56
-                self.remapped_to_motor_outputs['M4'] = 56
+                self.remapped_to_motor_outputs['M1'] = int(255)
+                self.remapped_to_motor_outputs['M2'] = int(0)
+                self.remapped_to_motor_outputs['M3'] = int(0)
+                self.remapped_to_motor_outputs['M4'] = int(0)
             else:
-                self.remapped_to_motor_outputs['M1'] = 127
-                self.remapped_to_motor_outputs['M2'] = 127
-                self.remapped_to_motor_outputs['M3'] = 127
-                self.remapped_to_motor_outputs['M4'] = 127
+                self.remapped_to_motor_outputs['M1'] = int(127)
+                self.remapped_to_motor_outputs['M2'] = int(127)
+                self.remapped_to_motor_outputs['M3'] = int(127)
+                self.remapped_to_motor_outputs['M4'] = int(127)
             if data['Z'] > 0.2:
-                self.remapped_to_motor_outputs['M5'] = 56
-                self.remapped_to_motor_outputs['M6'] = 56
-                self.remapped_to_motor_outputs['M7'] = 200
-                self.remapped_to_motor_outputs['M8'] = 200
+                self.remapped_to_motor_outputs['M5'] = int(0)
+                self.remapped_to_motor_outputs['M6'] = int(0)
+                self.remapped_to_motor_outputs['M7'] = int(255)
+                self.remapped_to_motor_outputs['M8'] = int(255)
             elif data['Z'] < -0.2:
-                self.remapped_to_motor_outputs['M5'] = 200
-                self.remapped_to_motor_outputs['M6'] = 200
-                self.remapped_to_motor_outputs['M7'] = 56
-                self.remapped_to_motor_outputs['M8'] = 56
+                self.remapped_to_motor_outputs['M5'] = int(255)
+                self.remapped_to_motor_outputs['M6'] = int(255)
+                self.remapped_to_motor_outputs['M7'] = int(0)
+                self.remapped_to_motor_outputs['M8'] = int(0)
             else:
-                self.remapped_to_motor_outputs['M5'] = 127
-                self.remapped_to_motor_outputs['M6'] = 127
-                self.remapped_to_motor_outputs['M7'] = 127
-                self.remapped_to_motor_outputs['M8'] = 127
+                self.remapped_to_motor_outputs['M5'] = int(127)
+                self.remapped_to_motor_outputs['M6'] = int(127)
+                self.remapped_to_motor_outputs['M7'] = int(127)
+                self.remapped_to_motor_outputs['M8'] = int(127)
         else:
-            self.remapped_to_motor_outputs['M1'] = 127
-            self.remapped_to_motor_outputs['M2'] = 127
-            self.remapped_to_motor_outputs['M3'] = 127
-            self.remapped_to_motor_outputs['M4'] = 127
-            self.remapped_to_motor_outputs['M5'] = 127
-            self.remapped_to_motor_outputs['M6'] = 127
-            self.remapped_to_motor_outputs['M7'] = 127
-            self.remapped_to_motor_outputs['M8'] = 127
+            self.remapped_to_motor_outputs['M1'] = int(127)
+            self.remapped_to_motor_outputs['M2'] = int(127)
+            self.remapped_to_motor_outputs['M3'] = int(127)
+            self.remapped_to_motor_outputs['M4'] = int(127)
+            self.remapped_to_motor_outputs['M5'] = int(127)
+            self.remapped_to_motor_outputs['M6'] = int(127)
+            self.remapped_to_motor_outputs['M7'] = int(127)
+            self.remapped_to_motor_outputs['M8'] = int(127)
 
         # Send data to outputs table
         response = requests.post("http://192.168.8.138:5000/outputs/", json=self.remapped_to_motor_outputs)
-        if response.status_code == 200:
+        if response.status_code == 201:
             logging.info("Data successfully sent to the outputs table.")
         else:
             logging.error(f"Failed to send data to the outputs table: {response.text}")
-
-    def post_data(self):
-        """
-        Sends the joystick data to the Flask server.
-        """
-        try:
-            response = requests.post(self.url, json=self.convertedData)
-            if response.status_code == 200:
-                logging.info("Data successfully sent to the server.")
-            else:
-                logging.error(f"Failed to send data: {response.text}")
-        except requests.exceptions.RequestException as e:
-            logging.error(f"Error sending data: {str(e)}")
-
-    def log_output(self, version: int = 0):
-        if version == 0:
-            # logging.info(self.out_data)
-            d = ''
-            for key in self.out_data:
-                d += f'{key}: {self.out_data[key]}     | '
-            print(d)
-        elif version == 1:
-            temp = ""
-            for i in range(len(self.joy_data)):
-                temp += f'   {i}: {self.joy_data[i]}   |'
-            logging.info(temp)
-            print(temp)
 
     def run(self):
         while True:
             self.get_data()
             self.parse_mapping()
             self.map_data()
-            # self.convertData()
-            # self.post_data()
             self.remap_to_outputs(self.out_data)
             print("self.remapped_to_motor_outputs:", self.remapped_to_motor_outputs)
             pygame.time.wait(1)
-    
-    def convertData(self):
-        if self.out_data["X"]>0.2:
-            if "Forward" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Forward,"
-            self.convertedData["force"] = self.out_data["X"]
-        if self.out_data["X"]<-0.2:
-            if "Backward" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Backward,"
-            self.convertedData["force"] = self.out_data["X"]
-        if self.out_data["Y"]>0.2:
-            if "Up" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Up,"
-            self.convertedData["force"] = self.out_data["Y"]
-        if self.out_data["Y"]<-0.2:
-            if "Down" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Down,"
-            self.convertedData["force"] = self.out_data["Y"]
-        if self.out_data["Z"]>0.2:
-            if "Left" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Left,"
-            self.convertedData["force"] = self.out_data["Z"]
-        if self.out_data["Z"]<-0.2:
-            if "Right" not in self.convertedData["direction"]:
-                self.convertedData["direction"] += "Right,"
-            self.convertedData["force"] = self.out_data["Z"]
-        self.convertedData["step_index"] = self.count
-        self.convertedData['arm'] = self.out_data["Arm"]
-        self.count = self.count + 1
 
-        
-    def test_run(self):
-        while True:
-            axis = input('Enter axis (X, Y, Z, Pitch, Roll, Yaw): ')
-            value = float(input('Enter value (-1.0 to 1.0): '))
-            
-            self.out_data[axis] = value
-            
-            self.post_data()
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
