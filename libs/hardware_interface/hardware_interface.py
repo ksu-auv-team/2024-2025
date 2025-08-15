@@ -116,7 +116,7 @@ class HardwareInterface:
 
     def qualification(self):
         starting_delay = 5
-        initial_movemnet = 6
+        initial_movemnet = 4
         down_hold = 10
         second_movement = 60
         up_movement = 60
