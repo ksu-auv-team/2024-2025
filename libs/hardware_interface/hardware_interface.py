@@ -130,6 +130,12 @@ class HardwareInterface:
             self._MotorController(motors)
             if (time.time() > breakCase):
                 break
+        motors: Dict[str, int] = {
+            "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
+            "M5": int(127), "M6": int(127), "M7": int(127), "M8": int(127)
+        }
+        self._MotorController(motors)
+        time.sleep(0.1)
         breakCase = time.time() + down_hold
         while True:
             motors: Dict[str, int] = {
