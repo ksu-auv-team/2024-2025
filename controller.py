@@ -20,22 +20,6 @@ def sendToDB(self, data : dict):
     except requests.RequestException as e:
         print(f"Error sending data to DB: {e}")
 
-# Mapping choices
-# - regular: The default mapping.
-# - flipped: The mapping with the two axis flipped.
-# - inverted: The mapping with the two axis inverted.
-# - inverted_flipped: The mapping with the two axis flipped and inverted.
-
-# Example of the regular mapping:
-# - Axis 0: Left stick, left-right : Yaw
-# - Axis 1: Left stick, up-down : Z
-# - Axis 2: Right stick, up-down : X
-# - Axis 3: Right stick, left-right : Y
-# - Axis 4: Button Press + Right Stick, up-down : Pitch
-# - Axis 5: Button Press + Right Stick, left-right : Roll
-# - Axis 6: Knob Axis, left-right : Claw
-
-
 class CM:
     def __init__(self, mapping_choice : str = 'regular', args: list = sys.argv):
         self.joystick = None
@@ -63,6 +47,38 @@ class CM:
         orin_ip = '10.42.0.203'
         self.url = f"http://192.168.8.138:5000/inputs/"
         # Configure logging
+
+        # step_index = db.Column(db.Integer, nullable=False)
+        # direction = db.Column(db.String(50), nullable=False)
+        # force = db.Column(db.Float, nullable=False)
+        # M1 = db.Column(db.Float, nullable=False)
+        # M2 = db.Column(db.Float, nullable=False)
+        # M3 = db.Column(db.Float, nullable=False)
+        # M4 = db.Column(db.Float, nullable=False)
+        # M5 = db.Column(db.Float, nullable=False)
+        # M6 = db.Column(db.Float, nullable=False)
+        # M7 = db.Column(db.Float, nullable=False)
+        # M8 = db.Column(db.Float, nullable=False)
+        # S1 = db.Column(db.Float, nullable=False)
+        # S2 = db.Column(db.Float, nullable=False)
+        # S3 = db.Column(db.Float, nullable=False)
+        # arm = db.Column(db.Boolean, nullable=False)
+        self.remapped_to_motor_outputs = {
+            "M1": 127,
+            "M2": 127,
+            "M3": 127,
+            "M4": 127,
+            "M5": 127,
+            "M6": 127,
+            "M7": 127,
+            "M8": 127,
+            "S1": 127,
+            "S2": 127,
+            "S3": 127,
+            "Arm": False
+        }
+
+        
 
     def init_joystick(self):
         pygame.init()
@@ -152,6 +168,65 @@ class CM:
         # Log the mapped data for debugging
         logging.info(f"Mapped data: {self.out_data}")
 
+    def remap_to_outputs(self, data : dict[str, int | float | bool]):
+        if data['Arm']:
+            if data['X'] > 0.2:
+                self.remapped_to_motor_outputs['M1'] = 200
+                self.remapped_to_motor_outputs['M2'] = 200
+                self.remapped_to_motor_outputs['M3'] = 56
+                self.remapped_to_motor_outputs['M4'] = 200
+            elif data['X'] < -0.2:
+                self.remapped_to_motor_outputs['M1'] = 56
+                self.remapped_to_motor_outputs['M2'] = 56
+                self.remapped_to_motor_outputs['M3'] = 200
+                self.remapped_to_motor_outputs['M4'] = 56
+            elif data['Y'] > 0.2:
+                self.remapped_to_motor_outputs['M1'] = 56
+                self.remapped_to_motor_outputs['M2'] = 200
+                self.remapped_to_motor_outputs['M3'] = 200
+                self.remapped_to_motor_outputs['M4'] = 200
+            elif data['Y'] < -0.2:
+                self.remapped_to_motor_outputs['M1'] = 200
+                self.remapped_to_motor_outputs['M2'] = 56
+                self.remapped_to_motor_outputs['M3'] = 56
+                self.remapped_to_motor_outputs['M4'] = 56
+            else:
+                self.remapped_to_motor_outputs['M1'] = 127
+                self.remapped_to_motor_outputs['M2'] = 127
+                self.remapped_to_motor_outputs['M3'] = 127
+                self.remapped_to_motor_outputs['M4'] = 127
+            if data['Z'] > 0.2:
+                self.remapped_to_motor_outputs['M5'] = 56
+                self.remapped_to_motor_outputs['M6'] = 56
+                self.remapped_to_motor_outputs['M7'] = 200
+                self.remapped_to_motor_outputs['M8'] = 200
+            elif data['Z'] < -0.2:
+                self.remapped_to_motor_outputs['M5'] = 200
+                self.remapped_to_motor_outputs['M6'] = 200
+                self.remapped_to_motor_outputs['M7'] = 56
+                self.remapped_to_motor_outputs['M8'] = 56
+            else:
+                self.remapped_to_motor_outputs['M5'] = 127
+                self.remapped_to_motor_outputs['M6'] = 127
+                self.remapped_to_motor_outputs['M7'] = 127
+                self.remapped_to_motor_outputs['M8'] = 127
+        else:
+            self.remapped_to_motor_outputs['M1'] = 127
+            self.remapped_to_motor_outputs['M2'] = 127
+            self.remapped_to_motor_outputs['M3'] = 127
+            self.remapped_to_motor_outputs['M4'] = 127
+            self.remapped_to_motor_outputs['M5'] = 127
+            self.remapped_to_motor_outputs['M6'] = 127
+            self.remapped_to_motor_outputs['M7'] = 127
+            self.remapped_to_motor_outputs['M8'] = 127
+
+        # Send data to outputs table
+        response = requests.post("http://192.168.8.138:5000/outputs/", json=self.remapped_to_motor_outputs)
+        if response.status_code == 200:
+            logging.info("Data successfully sent to the outputs table.")
+        else:
+            logging.error(f"Failed to send data to the outputs table: {response.text}")
+
     def post_data(self):
         """
         Sends the joystick data to the Flask server.
@@ -184,10 +259,10 @@ class CM:
             self.get_data()
             self.parse_mapping()
             self.map_data()
-            self.convertData()
-            self.post_data()
-            print("self.convertedData:", self.convertedData)
-            self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
+            # self.convertData()
+            # self.post_data()
+            self.remap_to_outputs(self.out_data)
+            print("self.remapped_to_motor_outputs:", self.remapped_to_motor_outputs)
             pygame.time.wait(1)
     
     def convertData(self):
