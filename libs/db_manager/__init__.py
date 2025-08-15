@@ -18,13 +18,7 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Enable CORS for your frontend origin
-    CORS(
-        app,
-        resources={r"/*": {"origins": ["http://192.168.8.109:5002"]}},
-        supports_credentials=False,
-        methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"]
-    )
+    CORS(app, resources={r"/*": {"origins": "http://192.168.8.138:5002"}})
 
     db.init_app(app)
     ma.init_app(app)
