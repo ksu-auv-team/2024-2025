@@ -41,13 +41,13 @@ class CM:
         self.joystick = None
         self.init_joystick()
 
-        with open('configs/controller_configs.json') as f:
+        with open("config/controller_config.json") as f:
             self.config = json.load(f)
             # if args.P:
             #     self.baseurl = self.config['poolUrl']
             # else:
             #     self.baseurl = self.config['labUrl']
-            self.config = self.config['GameController']
+            self.config = self.config['FlightController']
 
         self.joy_data = []
         self.count = 0
@@ -186,27 +186,34 @@ class CM:
             self.map_data()
             self.convertData()
             self.post_data()
-            self.log_output(version = 0)
+            print("self.convertedData:", self.convertedData)
+            self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
             pygame.time.wait(10)
     
     def convertData(self):
         if self.out_data["X"]>0.2:
-            self.convertedData["Direction"] += "Forward,"
+            if "Forward" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Forward,"
             self.convertedData["Force"] = self.out_data["X"]
         if self.out_data["X"]<-0.2:
-            self.convertedData["Direction"] += "Backward,"
+            if "Backward" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Backward,"
             self.convertedData["Force"] = self.out_data["X"]
         if self.out_data["Y"]>0.2:
-            self.convertedData["Direction"] += "Up,"
+            if "Up" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Up,"
             self.convertedData["Force"] = self.out_data["Y"]
         if self.out_data["Y"]<-0.2:
-            self.convertedData["Direction"] += "Down,"
+            if "Down" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Down,"
             self.convertedData["Force"] = self.out_data["Y"]
         if self.out_data["Z"]>0.2:
-            self.convertedData["Direction"] += "Left,"
+            if "Left" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Left,"
             self.convertedData["Force"] = self.out_data["Z"]
-        if self.out_data["Y"]<-0.2:
-            self.convertedData["Direction"] += "Right,"
+        if self.out_data["Z"]<-0.2:
+            if "Right" not in self.convertedData["direction"]:
+                self.convertedData["direction"] += "Right,"
             self.convertedData["Force"] = self.out_data["Z"]
         self.convertedData["step_index"] = self.count
         self.count = self.count + 1

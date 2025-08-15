@@ -62,7 +62,14 @@ def main():
         ["python", "-m", "libs.db_manager.run"],
         ["python", "-m", "libs.data_visualizer.run"],
         ["python", "-m", "libs.hardware_interface.run"],
-        # ["python", "-m", "libs.movement_package.run"]
+        ["python", "-m", "libs.movement_package.run"]
+    ]
+
+    to_qualify_processes = [
+        ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.data_visualizer.run"],
+        ["python", "-m", "libs.hardware_interface.run", "--qualify"],
+        ["python", "-m", "libs.movement_package.run"]
     ]
 
     init_db_posts = [

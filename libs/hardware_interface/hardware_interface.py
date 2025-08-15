@@ -56,7 +56,7 @@ def _probe_i2c_rdwr(bus: smbus2.SMBus, addr: int, read_len: int = 1) -> Tuple[bo
 
 
 class HardwareInterface:
-    def __init__(self):
+    def __init__(self, qualify : bool = False):
         """
         @brief Initializes the hardware interface, loads configuration, and sets up the I2C bus.
         """
@@ -111,6 +111,8 @@ class HardwareInterface:
             logging.warning("IMU serial connect failed initially: %s", e)
 
         self._imu_step_index = 0  # for IMU payloads
+
+        self.qualify = qualify
 
     # ------------------------------- Small helpers -------------------------------
 
@@ -330,15 +332,14 @@ class HardwareInterface:
           Pulls /outputs/latest (dict) to avoid list handling. Applies defaults if fields missing.
         """
         url = f"{self.config['DB_Address']}:{self.config['DB_Port']}/outputs/latest"
-        while True:
-            try:
-                row = getDataFromServer(url)  # dict or None/null
-                if not isinstance(row, dict):
-                    # nothing available yet
-                    time.sleep(0.02)
-                    logging.error("ControlProcess no data available")
-                    continue
-
+        try:
+            row = getDataFromServer(url)  # dict or None/null
+            if not isinstance(row, dict):
+                # nothing available yet
+                time.sleep(0.02)
+                logging.error("ControlProcess no data available")
+                pass
+            else:
                 logging.error(f"ControlProcess Raw Data: {row}")
 
                 # Build slices with safe defaults (DB stores µs floats/ints)
@@ -349,27 +350,26 @@ class HardwareInterface:
                 logging.error(f"ControlProcess Split Data: {motors}, {torp}, {arm}")
 
                 self._MotorController(motors)
-                self._TorpController(torp)
-                self._ArmServoController(arm)
-            except Exception as e:
-                logging.error("ControlProcess error: %s", e)
+                # self._TorpController(torp)
+                # self._ArmServoController(arm)
+        except Exception as e:
+            logging.error("ControlProcess error: %s", e)
 
     def SensorProcess(self):
         """
         @brief Loop fetching IMU packet from serial and pushing to DB.
         """
-        while True:
-            try:
-                self._SerialIMU()
-                imu_raw = self.sensor_data['IMU_Data']
-                imu_payload = self._format_imu_payload(imu_raw)
+        try:
+            self._SerialIMU()
+            imu_raw = self.sensor_data['IMU_Data']
+            imu_payload = self._format_imu_payload(imu_raw)
 
-                sendDataToServer(
-                    imu_payload,
-                    f"{self.config['DB_Address']}:{self.config['DB_Port']}/imu/"
-                )
-            except Exception as e:
-                logging.error("SensorProcess error: %s", e)
+            sendDataToServer(
+                imu_payload,
+                f"{self.config['DB_Address']}:{self.config['DB_Port']}/imu/"
+            )
+        except Exception as e:
+            logging.error("SensorProcess error: %s", e)
 
     def _format_imu_payload(self, imu_raw: dict) -> dict:
         """
@@ -418,10 +418,14 @@ class HardwareInterface:
         # control_proc.join()
         # sensor_proc.join()
 
-        self.ControlProcess()
-        self.SensorProcess()
-        time.sleep(0.02)  # ~50 Hz
-
+        while True:
+            if not self.qualify:
+                self.ControlProcess()
+                self.SensorProcess()
+                time.sleep(0.02)  # ~50 Hz
+            else:
+                self.SensorProcess()
+                time.sleep(0.02)  # ~50 Hz
 
     # ------------------------------- TODO modules -------------------------------
 
@@ -438,5 +442,10 @@ def run():
     """
     @brief Entrypoint to launch the hardware interface.
     """
-    hardware_interface = HardwareInterface()
+    import argparse
+    parser = argparse.ArgumentParser(description="Run the hardware interface.")
+    parser.add_argument("--qualify", action="store_true", help="Run in qualification mode.")
+    args = parser.parse_args()
+
+    hardware_interface = HardwareInterface(qualify=args.qualify)
     hardware_interface.run()
