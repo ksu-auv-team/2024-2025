@@ -288,14 +288,14 @@ class HardwareInterface:
         """
         try:
             sentData = [
-                int(data["M1"]),
-                int(data["M2"]),
-                int(data["M3"]),
-                int(data["M4"]),
-                int(data["M5"]),
-                int(data["M6"]),
-                int(data["M7"]),
-                int(data["M8"])
+                self._pwm_us_to_u8(data["M1"], 0, 255),
+                self._pwm_us_to_u8(data["M2"], 0, 255),
+                self._pwm_us_to_u8(data["M3"], 0, 255),
+                self._pwm_us_to_u8(data["M4"], 0, 255),
+                self._pwm_us_to_u8(data["M5"], 0, 255),
+                self._pwm_us_to_u8(data["M6"], 0, 255),
+                self._pwm_us_to_u8(data["M7"], 0, 255),
+                self._pwm_us_to_u8(data["M8"], 0, 255)
             ]
             logging.error("Motor control data sent (u8): %s", sentData)
             self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
