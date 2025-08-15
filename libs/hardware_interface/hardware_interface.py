@@ -421,7 +421,7 @@ class HardwareInterface:
         while True:
             if not self.qualify:
                 self.ControlProcess()
-                self.SensorProcess()
+                # self.SensorProcess()
                 time.sleep(0.02)  # ~50 Hz
             else:
                 self.SensorProcess()
