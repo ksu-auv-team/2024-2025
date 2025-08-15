@@ -67,7 +67,7 @@ def main():
     ]
 
     to_qualify_processes = [
-        ["python", "-m", "libs.db_manager.run"],
+        # ["python", "-m", "libs.db_manager.run"],
         ["python", "-m", "libs.hardware_interface.run", "--qualify"]
     ]
 
