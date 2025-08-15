@@ -2,9 +2,9 @@
    KSU AUV Data Visualizer – Client Script
    ============================================ */
 
-const BASE_API = "http://192.168.8.109:5000";  // Flask API
-const CAM0 = "http://192.168.8.109:5001/video_0";
-const CAM1 = "http://192.168.8.109:5001/video_1";
+const BASE_API = "http://localhost:5000";  // Flask API
+const CAM0 = "http://localhost:5001/video_0";
+const CAM1 = "http://localhost:5001/video_1";
 
 console.log("[AUV UI] index.js loaded");
 

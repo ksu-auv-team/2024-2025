@@ -61,7 +61,7 @@ class CM:
         self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
         # orin_ip = '192.168.1.246'
         orin_ip = '10.42.0.203'
-        self.url = f"http://{orin_ip}:5000/input"
+        self.url = f"http://192.168.8.138:5000/inputs/"
         # Configure logging
 
     def init_joystick(self):
@@ -185,10 +185,10 @@ class CM:
             self.parse_mapping()
             self.map_data()
             self.convertData()
-            # self.post_data()
+            self.post_data()
             print("self.convertedData:", self.convertedData)
             self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
-            pygame.time.wait(10)
+            pygame.time.wait(1)
     
     def convertData(self):
         if self.out_data["X"]>0.2:
@@ -216,6 +216,7 @@ class CM:
                 self.convertedData["direction"] += "Right,"
             self.convertedData["Force"] = self.out_data["Z"]
         self.convertedData["step_index"] = self.count
+        self.convertedData['arm'] = self.out_data["Arm"]
         self.count = self.count + 1
 
         
