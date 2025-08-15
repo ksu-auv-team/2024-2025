@@ -350,8 +350,8 @@ class HardwareInterface:
                 logging.error(f"ControlProcess Raw Data: {row}")
 
                 # Build slices with safe defaults (DB stores µs floats/ints)
-                motors = {k: row.get(k, 1500) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
-                torp   = {"S2": row.get("S2", 90), "S3": row.get("S3", 90)}
+                motors = {k: row.get(k, 127) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
+                torp   = {"S2": row.get("S2", 127), "S3": row.get("S3", 127)}
                 arm    = {"S1": row.get("S1", 127)}
 
                 logging.error(f"ControlProcess Split Data: {motors}, {torp}, {arm}")
