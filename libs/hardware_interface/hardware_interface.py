@@ -123,6 +123,10 @@ class HardwareInterface:
         time.sleep(starting_delay)
         breakCase = time.time() + initial_movemnet*1
         print(breakCase)
+        while True:
+            print(f"{time.time()} | {breakCase}")
+            if (time.time() > breakCase):
+                break
         # while True:
         #     motors: Dict[str, int] = {
         #         "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
