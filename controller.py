@@ -194,27 +194,27 @@ class CM:
         if self.out_data["X"]>0.2:
             if "Forward" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Forward,"
-            self.convertedData["Force"] = self.out_data["X"]
+            self.convertedData["force"] = self.out_data["X"]
         if self.out_data["X"]<-0.2:
             if "Backward" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Backward,"
-            self.convertedData["Force"] = self.out_data["X"]
+            self.convertedData["force"] = self.out_data["X"]
         if self.out_data["Y"]>0.2:
             if "Up" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Up,"
-            self.convertedData["Force"] = self.out_data["Y"]
+            self.convertedData["force"] = self.out_data["Y"]
         if self.out_data["Y"]<-0.2:
             if "Down" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Down,"
-            self.convertedData["Force"] = self.out_data["Y"]
+            self.convertedData["force"] = self.out_data["Y"]
         if self.out_data["Z"]>0.2:
             if "Left" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Left,"
-            self.convertedData["Force"] = self.out_data["Z"]
+            self.convertedData["force"] = self.out_data["Z"]
         if self.out_data["Z"]<-0.2:
             if "Right" not in self.convertedData["direction"]:
                 self.convertedData["direction"] += "Right,"
-            self.convertedData["Force"] = self.out_data["Z"]
+            self.convertedData["force"] = self.out_data["Z"]
         self.convertedData["step_index"] = self.count
         self.convertedData['arm'] = self.out_data["Arm"]
         self.count = self.count + 1

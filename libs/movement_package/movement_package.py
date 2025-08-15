@@ -158,7 +158,7 @@ class MovementPackage:
             self.logger.warning("No data to update in the database.")
             return
         
-        api_url = f"{self.config['DB_Address']}:{self.config['DB_Port']}/outputs"
+        api_url = f"{self.config['DB_Address']}:{self.config['DB_Port']}/outputs/"
         response = post_data(api_url, data)
         if 'error' in response:
             self.logger.error(f"Failed to update database: {response['error']}")
