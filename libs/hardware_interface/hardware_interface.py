@@ -287,7 +287,9 @@ class HardwareInterface:
         @brief Sends motor control data (M1..M8) to the motor controller as bytes 0..255.
         """
         try:
-            sentData = [self._pwm_us_to_u8(data.get(k, 127)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")]
+            sentData = [
+                self._pwm_us_to_u8(data.get(k, 127), 0, 255) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")
+            ]
             logging.error("Motor control data sent (u8): %s", sentData)
             self._sendI2CPacket(sentData, hex(self.config['Motor_Controller_Address']))
         except Exception as e:
