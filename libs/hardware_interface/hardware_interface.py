@@ -588,9 +588,9 @@ class HardwareInterface:
         # control_proc.join()
         # sensor_proc.join()
 
-        # while True:
+        while True:
         #     if not self.qualify:
-        self.ControlProcess()
+            self.ControlProcess()
         # self.qualification()
         # self.play_replay()
             #     # self.SensorProcess()
