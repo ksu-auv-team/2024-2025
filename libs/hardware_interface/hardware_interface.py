@@ -435,15 +435,15 @@ class HardwareInterface:
         # control_proc.join()
         # sensor_proc.join()
 
-        while True:
-            if not self.qualify:
-                ##self.ControlProcess()
-                self.qualification()
-                # self.SensorProcess()
-                time.sleep(0.02)  # ~50 Hz
-            else:
-                # self.SensorProcess()
-                time.sleep(0.02)  # ~50 Hz
+        # while True:
+        #     if not self.qualify:
+        #         ##self.ControlProcess()
+        self.qualification()
+            #     # self.SensorProcess()
+            #     time.sleep(0.02)  # ~50 Hz
+            # else:
+            #     # self.SensorProcess()
+            #     time.sleep(0.02)  # ~50 Hz
 
     # ------------------------------- TODO modules -------------------------------
 
