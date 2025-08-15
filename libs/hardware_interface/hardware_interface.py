@@ -118,16 +118,11 @@ class HardwareInterface:
         starting_delay = 5
         initial_movemnet = 4
         reverse_hold = 1
-        down_hold = 10
-        second_movement = 60
-        up_movement = 60
+        down_hold = 3
+        second_movement = 4
+        up_movement = 5
         time.sleep(starting_delay)
         breakCase = time.time() + initial_movemnet*1
-        # print(breakCase)
-        # while True:
-        #     print(f"{time.time()} | {breakCase}")
-        #     if (time.time() > breakCase):
-        #         break
         while True:
             motors: Dict[str, int] = {
                 "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
@@ -157,33 +152,33 @@ class HardwareInterface:
         }
         self._MotorController(motors)
         time.sleep(2)
-        # breakCase = time.time() + down_hold
-        # while True:
-        #     motors: Dict[str, int] = {
-        #         "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
-        #         "M5": int(0), "M6": int(0), "M7": int(255), "M8": int(255)
-        #     }
-        #     self._MotorController(motors)
-        #     if time.time() > down_hold:
-        #         break
-        # breakCase = time.time() + second_movement
-        # while True:
-        #     motors: Dict[str, int] = {
-        #         "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
-        #         "M5": int(127), "M6": int(127), "M7": int(127), "M8": int(127)
-        #     }
-        #     self._MotorController(motors)
-        #     if time.time() > breakCase:
-        #         break
-        # breakCase = time.time() + up_movement
-        # while True:
-        #     motors: Dict[str, int] = {
-        #         "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
-        #         "M5": int(0), "M6": int(0), "M7": int(255), "M8": int(255)
-        #     }
-        #     self._MotorController(motors)
-        #     if time.time() > breakCase:
-        #         break
+        breakCase = time.time() + down_hold*1
+        while True:
+            motors: Dict[str, int] = {
+                "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
+                "M5": int(0), "M6": int(0), "M7": int(255), "M8": int(255)
+            }
+            self._MotorController(motors)
+            if time.time() > breakCase:
+                break
+        breakCase = time.time() + second_movement*1
+        while True:
+            motors: Dict[str, int] = {
+                "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
+                "M5": int(127), "M6": int(127), "M7": int(127), "M8": int(127)
+            }
+            self._MotorController(motors)
+            if time.time() > breakCase:
+                break
+        breakCase = time.time() + up_movement*1
+        while True:
+            motors: Dict[str, int] = {
+                "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
+                "M5": int(255), "M6": int(255), "M7": int(0), "M8": int(0)
+            }
+            self._MotorController(motors)
+            if time.time() > breakCase:
+                break
 
     # ------------------------------- Small helpers -------------------------------
 
