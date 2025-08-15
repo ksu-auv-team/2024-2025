@@ -438,14 +438,10 @@ class HardwareInterface:
     def _I2CIMU(self):          pass
 
 
-def run():
+def run(qualify : bool = False):
     """
     @brief Entrypoint to launch the hardware interface.
+    @param qualify: Whether to run in qualification mode.
     """
-    import argparse
-    parser = argparse.ArgumentParser(description="Run the hardware interface.")
-    parser.add_argument("--qualify", action="store_true", help="Run in qualification mode.")
-    args = parser.parse_args()
-
-    hardware_interface = HardwareInterface(qualify=args.qualify)
+    hardware_interface = HardwareInterface(qualify=qualify)
     hardware_interface.run()
