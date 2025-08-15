@@ -121,7 +121,7 @@ class HardwareInterface:
         second_movement = 60
         up_movement = 60
         time.sleep(starting_delay)
-        breakCase = time.time() + initial_movemnet
+        breakCase = time.time() + initial_movemnet*1
         while True:
             motors: Dict[str, int] = {
                 "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
