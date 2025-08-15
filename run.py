@@ -67,7 +67,7 @@ def main():
     ]
 
     to_qualify_processes = [
-        ["python", "-m", "libs.db_manager.run"],
+        ["hypercorn", "libs.db_manager.run:asgi_app", "--bind 0.0.0.0:5000"],
         ["python", "-m", "libs.data_visualizer.run"],
         ["python", "-m", "libs.hardware_interface.run", "--qualify"],
         ["python", "-m", "libs.movement_package.run"]

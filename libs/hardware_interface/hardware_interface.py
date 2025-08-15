@@ -424,7 +424,7 @@ class HardwareInterface:
                 # self.SensorProcess()
                 time.sleep(0.02)  # ~50 Hz
             else:
-                self.SensorProcess()
+                # self.SensorProcess()
                 time.sleep(0.02)  # ~50 Hz
 
     # ------------------------------- TODO modules -------------------------------
