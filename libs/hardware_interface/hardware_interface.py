@@ -114,6 +114,23 @@ class HardwareInterface:
 
         self.qualify = qualify
 
+    def qualification(self):
+        time.sleep(60)
+        breakCase = time.time() + 60*1
+        while(True):
+            motors: Dict[str, int] = {
+                "M1": int(255), "M2": int(255), "M3": int(0), "M4": int(255),
+                "M5": int(127), "M6": int(127), "M7": int(127), "M8": int(127)
+            }
+            self._MotorController(motors)
+            motors: Dict[str, int] = {
+                "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
+                "M5": int(0), "M6": int(0), "M7": int(255), "M8": int(255)
+            }
+            self._MotorController(motors)
+            if (time.time() > breakCase):
+                break
+        
     # ------------------------------- Small helpers -------------------------------
 
     @staticmethod
@@ -420,7 +437,8 @@ class HardwareInterface:
 
         while True:
             if not self.qualify:
-                self.ControlProcess()
+                ##self.ControlProcess()
+                self.qualification()
                 # self.SensorProcess()
                 time.sleep(0.02)  # ~50 Hz
             else:
