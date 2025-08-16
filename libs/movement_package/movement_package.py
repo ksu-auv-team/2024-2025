@@ -5,6 +5,8 @@ from .pid import PIDController
 import logging
 from typing import Dict, List, Union
 
+import requests
+
 
 def map(x: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
     """
@@ -173,7 +175,8 @@ class MovementPackage:
         """
         @brief Main loop: fetch latest inputs, compute outputs, and update DB.
         """
-        self._updateDB()
+        # Make sure the database has arm as false for the latest input:
+        response = requests.post(f"{self.config['DB_Address']}:{self.config['DB_Port']}/inputs/latest", json=self.parsed_inputs)
 
         while True:
             self.logger.info("Fetching latest inputs...")
