@@ -130,8 +130,8 @@ class MovementPackage:
 
             self.combined_output = {
                 "step_index": int(self.parsed_inputs["step_index"]),
-                "M1": motors[0], "M2": motors[1], "M3": motors[2], "M4": motors[3],
-                "M5": motors[4], "M6": motors[5], "M7": motors[6], "M8": motors[7],
+                "M1": map(motors[0], -1, 1, 0, 255), "M2": map(motors[1], -1, 1, 0, 255), "M3": map(motors[2], -1, 1, 0, 255), "M4": map(motors[3], -1, 1, 0, 255),
+                "M5": map(motors[4], -1, 1, 0, 255), "M6": map(motors[5], -1, 1, 0, 255), "M7": map(motors[6], -1, 1, 0, 255), "M8": map(motors[7], -1, 1, 0, 255),
                 "S1": s1, "S2": s2, "S3": s3,
                 "arm": True
             }
