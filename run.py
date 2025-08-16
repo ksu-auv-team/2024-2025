@@ -127,7 +127,7 @@ def main():
         processes = virtualized_controlled_processes
     elif args.trainer:
         processes = trainer_processes
-    elif args.real_world_controlled:
+    elif args.just_db:
         processes = real_world_controlled_processes
     elif args.real_world:
         processes = real_world_processes
