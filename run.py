@@ -61,13 +61,15 @@ def main():
 
     real_world_processes = [
         ["python", "-m", "libs.db_manager.run"],
-        ["python", "-m", "libs.movement_package.run"],
-        ["python", "-m", "libs.hardware_interface.run"]
+        # ["python", "-m", "libs.movement_package.run"],
+        # ["python", "-m", "libs.hardware_interface.run"]
     ]
 
     to_qualify_processes = [
-        # ["python", "-m", "libs.db_manager.run"],
-        ["python", "-m", "libs.hardware_interface.run", "--qualify"]
+        ["python", "-m", "libs.db_manager.run"],
+        ["python", "-m", "libs.movement_package.run"],
+        ["python", "-m", "libs.hardware_interface.run"],
+        ["python", "replay.py", "--from-api", "--post"]
     ]
 
     init_db_posts = [
@@ -132,13 +134,21 @@ def main():
     elif args.to_qualify:
         processes = to_qualify_processes
 
+    i = 0
+    proc_name = ""
+
     for cmd in processes:
         main_log.info(f"Starting subprocess: {' '.join(cmd)}")
-        try:
-            proc_name = cmd[-1].split('.')[-2]  # e.g., 'db_manager' from 'libs.db_manager.run'
-        except IndexError:
+        if i == 0:
+            proc_name = "db_manager"
+        elif i == 1:
+            proc_name = "movement_package"
+        elif i == 2:
             proc_name = "hardware_interface"
+        elif i == 3:
+            proc_name = "replay"
         proc_logger = logger.create_logger(proc_name, args.print_debug)
+        i += 1
 
         # Start subprocess with stdout/stderr piped
         proc = subprocess.Popen(
@@ -162,11 +172,10 @@ def main():
         t_err.start()
         threads.append(t_err)
 
-        time.sleep(5)
-
-        # if proc_name == 'db_manager':
-        #     for cmd in init_db_posts:
-        #         subprocess.run(cmd, check=True)
+        if proc_name == "hardware_interface":
+            time.sleep(60)
+        else:
+            time.sleep(2.5)
     
     def terminate_processes():
         main_log.info("Terminating subprocesses...")
