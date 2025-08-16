@@ -198,6 +198,43 @@ def replay_segments(
                 last_step = rec["step_index"]
     print("\nReplay complete.")
     
+    default_data = {
+        "step_index": 1,
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "s1": 0.0,
+        "s2": 0.0,
+        "s3": 0.0,
+        "arm": True
+    }
+
+    response = requests.post(f"http://localhost:5000/inputs/", json=default_data)
+    if response.status_code == 200:
+        print("Default data posted successfully.")
+    else:
+        print(f"Failed to post default data: {response.status_code} {response.text}")
+
+    default_data = {
+        "step_index": 1,
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "yaw": 0.0,
+        "s1": 0.0,
+        "s2": 0.0,
+        "s3": 0.0,
+        "arm": False
+    }
+
+    response = requests.post(f"http://localhost:5000/inputs/", json=default_data)
+    if response.status_code == 200:
+        print("Default data posted successfully.")
+    else:
+        print(f"Failed to post default data: {response.status_code} {response.text}")
+
+    print("Default data posted.")
 
 def main():
     ap = argparse.ArgumentParser(description="Replay arm==True segments from file or API.")
@@ -240,23 +277,6 @@ def main():
         rate_hz=args.rate_hz,
         step_dt=args.step_dt,
     )
-
-    default_data = {
-        "step_index": 1,
-        "direction": "",
-        "force": 0.0,
-        "s1": 0.0,
-        "s2": 0.0,
-        "s3": 0.0,
-        "arm": False
-    }
-
-    response = requests.post(f"{args.server}/inputs/", json=default_data)
-    if response.status_code == 200:
-        print("Default data posted successfully.")
-    else:
-        print(f"Failed to post default data: {response.status_code} {response.text}")
-
 
 if __name__ == "__main__":
     main()
