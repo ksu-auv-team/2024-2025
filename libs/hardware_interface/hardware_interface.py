@@ -359,7 +359,7 @@ class HardwareInterface:
         try:
             sent_data = [value for key, value in data.items() if key.startswith("M")]
             self.bus.write_i2c_block_data(76, 0, sent_data)
-            logging.error("Motor control data sent (u8): %s", sent_data)
+            # logging.error("Motor control data sent (u8): %s", sent_data)
         except Exception as e:
             logging.error("Failed to send motor control data: %s", str(e))
             return
@@ -408,14 +408,14 @@ class HardwareInterface:
                 logging.error("ControlProcess no data available")
                 pass
             else:
-                logging.error(f"ControlProcess Raw Data: {row}")
+                # logging.error(f"ControlProcess Raw Data: {row}")
 
                 # Build slices with safe defaults (DB stores µs floats/ints)
                 motors = {k: int(row.get(k, 127)) for k in ("M1","M2","M3","M4","M5","M6","M7","M8")}
                 torp   = {"S2": int(row.get("S2", 127)), "S3": int(row.get("S3", 127))}
                 arm    = {"S1": int(row.get("S1", 127))}
 
-                logging.error(f"ControlProcess Split Data: {motors}, {torp}, {arm}")
+                # logging.error(f"ControlProcess Split Data: {motors}, {torp}, {arm}")
 
                 self._MotorController(motors)
                 # self._TorpController(torp)
