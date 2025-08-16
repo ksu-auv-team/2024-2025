@@ -172,8 +172,8 @@ def main():
         t_err.start()
         threads.append(t_err)
 
-        if proc_name == "hardware_interface":
-            time.sleep(2.5)
+        if proc_name == "hardware_interface" and args.to_qualify:
+            time.sleep(60)
         else:
             time.sleep(2.5)
     
