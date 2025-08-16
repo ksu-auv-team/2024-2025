@@ -588,12 +588,12 @@ class HardwareInterface:
         # control_proc.join()
         # sensor_proc.join()
 
-        # while True:
+        while True:
         # #     if not self.qualify:
-        #     self.ControlProcess()
+            self.ControlProcess()
         # self.qualification()
-        self.replay()
-        self.play_replay()
+        # self.replay()
+        # self.play_replay()
             #     # self.SensorProcess()
             #     time.sleep(0.02)  # ~50 Hz
             # else:
