@@ -212,10 +212,11 @@ def main():
     ap.add_argument("--rate-hz", type=float, default=20.0, help="Fixed replay rate (Hz) when --pace fixed.")
     ap.add_argument("--step-dt", type=float, default=0.05, help="Seconds per step_index when --pace step.")
     ap.add_argument("--list", action="store_true", help="Only list segments; do not replay.")
+    ap.add_argument("--delay", type=float, default=60.0, help="Initial delay before starting replay.")
 
     args = ap.parse_args()
 
-    time.sleep(60)
+    time.sleep(args.delay)
 
     # Load data
     if args.from_api:
@@ -239,6 +240,22 @@ def main():
         rate_hz=args.rate_hz,
         step_dt=args.step_dt,
     )
+
+    default_data = {
+        "step_index": 1,
+        "direction": "",
+        "force": 0.0,
+        "s1": 0.0,
+        "s2": 0.0,
+        "s3": 0.0,
+        "arm": False
+    }
+
+    response = requests.post(f"{args.server}/inputs/", json=default_data)
+    if response.status_code == 200:
+        print("Default data posted successfully.")
+    else:
+        print(f"Failed to post default data: {response.status_code} {response.text}")
 
 
 if __name__ == "__main__":
