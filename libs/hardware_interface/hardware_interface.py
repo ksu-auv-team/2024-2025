@@ -592,6 +592,7 @@ class HardwareInterface:
         # #     if not self.qualify:
         #     self.ControlProcess()
         # self.qualification()
+        self.replay()
         self.play_replay()
             #     # self.SensorProcess()
             #     time.sleep(0.02)  # ~50 Hz
