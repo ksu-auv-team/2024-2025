@@ -89,9 +89,9 @@ class HardwareInterface:
 
         # Default input shadow (used only if DB empty)
         self.input_data: Dict[str, int] = {
-            "M1": 1500, "M2": 1500, "M3": 1500, "M4": 1500,
-            "M5": 1500, "M6": 1500, "M7": 1500, "M8": 1500,
-            "S1": 1500, "S2": 1300, "S3": 1300
+            "M1": 127, "M2": 127, "M3": 127, "M4": 127,
+            "M5": 127, "M6": 127, "M7": 127, "M8": 127,
+            "S1": 127, "S2": 127, "S3": 127
         }
 
         # IMU in engineering units (m/s and degrees)
