@@ -166,6 +166,7 @@ def replay_segments(
     @param rate_hz  Fixed rate (Hz) used when pace == "fixed".
     @param step_dt  Seconds per step_index increment when pace == "step".
     """
+    
     segs = find_true_segments(data)
     if not segs:
         print("No True-arm segments found.")
