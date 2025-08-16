@@ -173,6 +173,8 @@ class MovementPackage:
         """
         @brief Main loop: fetch latest inputs, compute outputs, and update DB.
         """
+        self._updateDB()
+
         while True:
             self.logger.info("Fetching latest inputs...")
             data = get_latest_data(f"{self.config['DB_Address']}:{self.config['DB_Port']}/inputs/latest")
