@@ -143,9 +143,9 @@ class MovementPackage:
             # Disarmed → zeros
             self.combined_output = {
                 "step_index": 0,
-                "M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0,
-                "M5": 0.0, "M6": 0.0, "M7": 0.0, "M8": 0.0,
-                "S1": 0.0, "S2": 0.0, "S3": 0.0,
+                "M1": int(127), "M2": int(127), "M3": int(127), "M4": int(127),
+                "M5": int(127), "M6": int(127), "M7": int(127), "M8": int(127),
+                "S1": int(127), "S2": int(127), "S3": int(127),
                 "arm": False
             }
 
