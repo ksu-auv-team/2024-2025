@@ -3,6 +3,7 @@ import requests
 import argparse
 from shared.mapping import map
 import sys
+import time
 
 class Controller:
     def __init__(self, lr: bool = False, debug: bool = True, sendDB: bool = False):
@@ -183,6 +184,8 @@ class Controller:
             # Update previous value for next loop iteration
             self.prev_arm = current_arm
 
+
+            time.sleep(0.01)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Controller for joystick input")
