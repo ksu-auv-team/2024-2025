@@ -173,7 +173,7 @@ def main():
         threads.append(t_err)
 
         if proc_name == "hardware_interface" and args.to_qualify:
-            time.sleep(60)
+            time.sleep(5)
         else:
             time.sleep(2.5)
     
