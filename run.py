@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run the application with specified configurations.")
     parser.add_argument("--virtualized-controlled", action="store_true")
     parser.add_argument("--trainer", action="store_true")
-    parser.add_argument("--real-world-controlled", action="store_true")
+    parser.add_argument("--just-db", action="store_true")
     parser.add_argument("--real-world", action="store_true")
     parser.add_argument("--to-qualify", action="store_true", help="Run in qualification mode.")
     parser.add_argument("--print-debug", action="store_true",
