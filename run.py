@@ -69,7 +69,7 @@ def main():
         ["python", "-m", "libs.db_manager.run"],
         ["python", "-m", "libs.movement_package.run"],
         ["python", "-m", "libs.hardware_interface.run"],
-        ["python", "replay.py", "--from-api", "--post"]
+        # ["python", "replay.py", "--from-api", "--post"]
     ]
 
     init_db_posts = [
