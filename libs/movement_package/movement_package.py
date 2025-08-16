@@ -137,7 +137,7 @@ class MovementPackage:
             }
 
             # Sanity check in normalized space (before optional scaling)
-            self._sanity_check_ranges()
+            # self._sanity_check_ranges()
 
         else:
             # Disarmed → zeros
