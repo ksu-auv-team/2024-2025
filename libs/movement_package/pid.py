@@ -28,18 +28,18 @@ class PIDController:
 
         # Rows = M1..M4, Cols = [X, Y, Yaw]
         default_h = np.array([
-            [ 1.0, -1.0,  0.0],   # M1 = +X -Y (+Yaw term here if you add it)
-            [ 1.0,  1.0,  0.0],   # M2 = +X +Y
-            [-1.0,  1.0,  0.0],   # M3 = -X +Y
-            [ 1.0,  1.0,  0.0],   # M4 = +X +Y
+            [ 1.0, -1.0,  1.0],   # M1 = +X -Y (+Yaw term here if you add it)
+            [ 1.0,  1.0, -1.0],   # M2 = +X +Y
+            [-1.0,  1.0, -1.0],   # M3 = -X +Y
+            [ 1.0,  1.0,  1.0],   # M4 = +X +Y
         ], dtype=float)
 
         # Rows = M5..M8, Col = [Z]
         default_v = np.array([
             [ 1.0],                # M5
-            [-1.0],                # M6
+            [ 1.0],                # M6
             [-1.0],                # M7
-            [ 1.0],                # M8
+            [-1.0],                # M8
         ], dtype=float)
 
         self.horizontal_mapping: np.ndarray = (
