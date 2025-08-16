@@ -40,7 +40,7 @@ class CM:
         # Each element in the map list is a list with three elements: element 0 is the button number, element 1 is the axis number, and element 2 is whether the axis is inverted.
         self.map = self.config
 
-        self.out_data = {"Arm": 0, "X": 0.0, "Y": 0.0, "Z": 0.0}
+        self.out_data = {"Arm": 0, "X": 0.0, "Y": 0.0, "Z": 0.0, "Yaw": 0.0}
         self.mapping_choice = mapping_choice
         self.convertedData = {"step_index": 0, "direction": "", "force": 0.0, "s1":127, "s2":127, "s3":127, "arm": False}
         # orin_ip = '192.168.1.246'
@@ -80,8 +80,6 @@ class CM:
             "S3": 127,
             "arm": False
         }
-
-        
 
     def init_joystick(self):
         pygame.init()
@@ -171,7 +169,7 @@ class CM:
         # Log the mapped data for debugging
         logging.info(f"Mapped data: {self.out_data}")
 
-    def remap_to_outputs(self, data : dict[str, int | float | bool]):
+    def last_resort(self, data : dict[str, int | float | bool]):
         self.remapped_to_motor_outputs['step_index'] += 1
         self.remapped_to_motor_outputs['arm'] = self.out_data['Arm']
         if data['Arm']:
@@ -195,6 +193,16 @@ class CM:
                 self.remapped_to_motor_outputs['M2'] = int(0)
                 self.remapped_to_motor_outputs['M3'] = int(0)
                 self.remapped_to_motor_outputs['M4'] = int(0)
+            elif data['Yaw'] > 0.2:
+                self.remapped_to_motor_outputs['M1'] = 127
+                self.remapped_to_motor_outputs['M2'] = 127
+                self.remapped_to_motor_outputs['M3'] = 127
+                self.remapped_to_motor_outputs['M4'] = 127
+            elif data['Yaw'] < -0.2:
+                self.remapped_to_motor_outputs['M1'] = 127
+                self.remapped_to_motor_outputs['M2'] = 127
+                self.remapped_to_motor_outputs['M3'] = 127
+                self.remapped_to_motor_outputs['M4'] = 127
             else:
                 self.remapped_to_motor_outputs['M1'] = int(127)
                 self.remapped_to_motor_outputs['M2'] = int(127)
@@ -214,7 +222,7 @@ class CM:
                 self.remapped_to_motor_outputs['M5'] = int(127)
                 self.remapped_to_motor_outputs['M6'] = int(127)
                 self.remapped_to_motor_outputs['M7'] = int(127)
-                self.remapped_to_motor_outputs['M8'] = int(127)
+                self.remapped_to_motor_outputs['M8'] = int(127)    
         else:
             self.remapped_to_motor_outputs['M1'] = int(127)
             self.remapped_to_motor_outputs['M2'] = int(127)
@@ -237,7 +245,8 @@ class CM:
             self.get_data()
             self.parse_mapping()
             self.map_data()
-            self.remap_to_outputs(self.out_data)
+            # self.last_resort(self.out_data)
+            self.send_data()
             print("self.remapped_to_motor_outputs:", self.remapped_to_motor_outputs)
             pygame.time.wait(1)
 

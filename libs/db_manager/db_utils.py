@@ -10,8 +10,10 @@ from .models.sonar import Sonar
 
 class InputSchema(Schema):
     step_index = fields.Int(required=True)
-    direction = fields.Str(required=True)
-    force = fields.Float(required=True)
+    x = fields.Float(required=True)
+    y = fields.Float(required=True)
+    z = fields.Float(required=True)
+    yaw = fields.Float(required=True)
     s1 = fields.Float(required=True)
     s2 = fields.Float(required=True)
     s3 = fields.Float(required=True)
@@ -36,8 +38,6 @@ def get_latest_input():
 
 class OutputSchema(Schema):
     step_index = fields.Int(required=True)
-    direction = fields.Str(required=True)
-    force = fields.Float(required=True)
     M1 = fields.Float(required=True)
     M2 = fields.Float(required=True)
     M3 = fields.Float(required=True)

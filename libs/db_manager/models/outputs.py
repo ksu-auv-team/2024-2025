@@ -28,8 +28,6 @@ class Outputs(db.Model):
     __tablename__ = 'outputs'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     step_index = db.Column(db.Integer, nullable=False)
-    direction = db.Column(db.String(50), nullable=False)
-    force = db.Column(db.Float, nullable=False)
     M1 = db.Column(db.Float, nullable=False)
     M2 = db.Column(db.Float, nullable=False)
     M3 = db.Column(db.Float, nullable=False)
@@ -50,8 +48,6 @@ class Outputs(db.Model):
         return {
             'id': self.id,
             'step_index': self.step_index,
-            'direction': self.direction,
-            'force': self.force,
             'M1': self.M1,
             'M2': self.M2,
             'M3': self.M3,
@@ -67,6 +63,5 @@ class Outputs(db.Model):
         }
 
     def __repr__(self):
-        return f"<Outputs {self.id} - step_index: {self.step_index}, Direction: {self.direction}, Force: {self.force},\
-                  M1: {self.M1}, M2: {self.M2}, M3: {self.M3}, M4: {self.M4}, M5: {self.M5}, M6: {self.M6},\
-                  M7: {self.M7}, M8: {self.M8}, S1: {self.S1}, S2: {self.S2}, S3: {self.S3}, Arm: {self.arm}>"
+        return f"<Outputs {self.id} - step_index: {self.step_index}, M1: {self.M1}, M2: {self.M2}, M3: {self.M3}, M4: {self.M4}, M5: {self.M5}, M6: {self.M6},\
+                  M7: {self.M7}, M8: {self.M8}, S1: {self.S1}, S2: {self.S2}, S3: {self.S3}, arm: {self.arm}>"
