@@ -114,13 +114,13 @@ class MovementPackage:
             self.logger.warning("No parsed inputs available.")
             return self.combined_output
 
-        if bool(self.parsed_inputs["Arm"]):
+        if bool(self.parsed_inputs["arm"]):
             # Compute PID outputs in normalized space
             self.PID.update_motors(
-                x=float(self.parsed_inputs["X"]),
-                y=float(self.parsed_inputs["Y"]),
-                z=float(self.parsed_inputs["Z"]),
-                yaw=float(self.parsed_inputs["Yaw"])
+                x=float(self.parsed_inputs["x"]),
+                y=float(self.parsed_inputs["y"]),
+                z=float(self.parsed_inputs["z"]),
+                yaw=float(self.parsed_inputs["yaw"])
             )
 
             motors = self._pid_flat()
